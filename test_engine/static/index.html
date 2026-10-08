@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Return ACH Test Engine Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo-badge">ACH-QA</div>
+      <div>
+        <div class="brand-title">Return ACH Test Engine</div>
+        <div class="brand-subtitle">Autonomous Verification & Business Rule Testing Dashboard</div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="pulse-dot"></div>
+      <span id="system-status">System Ready</span>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="app-layout">
+    <!-- Sidebar: Controls & Configuration -->
+    <aside class="sidebar">
+      <div class="config-group">
+        <label class="config-label">Target Backend URL / Endpoint</label>
+        <input type="text" id="target-url" class="input-field" value="http://localhost:8000" placeholder="http://localhost:8000">
+      </div>
+
+      <div class="config-group">
+        <label class="config-label">Execution Mode</label>
+        <select id="execution-mode" class="select-field">
+          <option value="mock" selected>Mock Connectors (Isolated)</option>
+          <option value="real">Real Upstream Connectors (Live)</option>
+        </select>
+      </div>
+
+      <div class="config-group">
+        <label class="config-label">Test Suites</label>
+        <div class="suite-checkboxes">
+          <label class="checkbox-item">
+            <input type="checkbox" name="suite" value="health" checked> Health & Availability
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="suite" value="schema" checked> Schema & Field Rules
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="suite" value="ach_domain" checked> ACH Return Codes & Traces
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="suite" value="security" checked> Auth & Conflict Boundaries
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="suite" value="connectors" checked> Connectors & Tools
+          </label>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <div class="config-group" style="flex:1;">
+          <label class="config-label">Concurrency</label>
+          <input type="number" id="concurrency" class="input-field" value="5" min="1" max="20">
+        </div>
+        <div class="config-group" style="flex:1;">
+          <label class="config-label">Timeout (s)</label>
+          <input type="number" id="timeout" class="input-field" value="15" min="1" max="60">
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+        <button id="btn-run" class="btn btn-primary">
+          ▶ Run Test Engine
+        </button>
+        <button id="btn-discover" class="btn btn-secondary">
+          🔍 Discover API Contracts
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Tabs Navigation -->
+      <nav class="tabs-nav">
+        <button class="tab-btn active" data-tab="results">Test Results</button>
+        <button class="tab-btn" data-tab="contracts">API Contracts</button>
+        <button class="tab-btn" data-tab="connectors">Connectors</button>
+        <button class="tab-btn" data-tab="logs">Execution Traces</button>
+        <button class="tab-btn" data-tab="history">Past Reports</button>
+      </nav>
+
+      <!-- Tab: Test Results -->
+      <section id="tab-results" class="tab-pane">
+        <!-- Top Status & Export Bar -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <h2 style="font-size:20px; font-weight:700;">Test Execution Summary</h2>
+            <span id="status-banner" class="badge badge-pass">IDLE</span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <span style="font-size:12px; color:var(--text-muted); margin-right:4px;">Download Report:</span>
+            <button id="btn-export-json" class="btn btn-secondary" style="font-size:12px; padding:6px 12px;" title="Download complete JSON report">
+              ⬇ JSON
+            </button>
+            <button id="btn-export-md" class="btn btn-secondary" style="font-size:12px; padding:6px 12px;" title="Download complete Markdown (.md) report">
+              ⬇ Markdown (.md)
+            </button>
+            <button id="btn-export-html" class="btn btn-secondary" style="font-size:12px; padding:6px 12px;" title="Download standalone HTML report">
+              ⬇ HTML
+            </button>
+          </div>
+        </div>
+
+        <!-- KPIs Grid -->
+        <div class="kpis-grid" style="margin-bottom:24px;">
+          <div class="kpi-card">
+            <div class="kpi-title">Total Tests</div>
+            <div id="kpi-total" class="kpi-value">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Passed</div>
+            <div id="kpi-passed" class="kpi-value val-pass">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Failed</div>
+            <div id="kpi-failed" class="kpi-value val-fail">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Pass Rate</div>
+            <div id="kpi-pass-rate" class="kpi-value val-blue">0.0%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Total Duration</div>
+            <div id="kpi-duration" class="kpi-value">0 ms</div>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar" style="margin-bottom:16px;">
+          <select id="filter-status" class="select-field" style="width:140px;">
+            <option value="all">All Statuses</option>
+            <option value="pass">Passed</option>
+            <option value="fail">Failed</option>
+            <option value="error">Errors</option>
+          </select>
+
+          <select id="filter-category" class="select-field" style="width:180px;">
+            <option value="all">All Categories</option>
+          </select>
+
+          <input type="text" id="search-input" class="input-field" placeholder="Search test name or ID..." style="flex:1;">
+        </div>
+
+        <!-- Results Table -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Test ID</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>HTTP</th>
+                <th>Latency</th>
+                <th>Inspect</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">
+                  Configure options on the left and click "Run Test Engine" or "Discover API".
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab: API Contracts -->
+      <section id="tab-contracts" class="tab-pane" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h2 style="font-size:20px; font-weight:700;">Discovered API Contracts</h2>
+          <span id="contract-title" style="color:var(--color-accent); font-weight:600;">No contract inspected</span>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Path</th>
+                <th>Auth</th>
+                <th>Parameters</th>
+                <th>Body Rules</th>
+              </tr>
+            </thead>
+            <tbody id="contracts-tbody">
+              <tr>
+                <td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px;">
+                  Click "Discover API Contracts" to inspect target schema.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab: Connectors -->
+      <section id="tab-connectors" class="tab-pane" style="display:none;">
+        <h2 style="font-size:20px; font-weight:700; margin-bottom:16px;">Connectors & External Tools</h2>
+        <div id="connectors-content">
+          <div style="text-align:center; color:var(--text-muted); padding:32px;">
+            Run tests to view connector status.
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab: Execution Traces -->
+      <section id="tab-logs" class="tab-pane" style="display:none;">
+        <h2 style="font-size:20px; font-weight:700; margin-bottom:16px;">Execution Traces & Wire Logs</h2>
+        <pre id="logs-container" class="code-block" style="height:550px; overflow-y:auto; color:var(--text-main);">
+No logs available. Run tests to capture execution traces.
+        </pre>
+      </section>
+
+      <!-- Tab: Past Reports -->
+      <section id="tab-history" class="tab-pane" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h2 style="font-size:20px; font-weight:700;">Saved Reports History</h2>
+          <button id="btn-refresh-history" class="btn btn-secondary btn-sm" onclick="loadReportHistory()">🔄 Refresh</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Target URL</th>
+                <th>Total Tests</th>
+                <th>Passed</th>
+                <th>Failed</th>
+                <th>Pass Rate</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">Loading past reports...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Detail Inspector Modal / Drawer -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title" style="font-size:16px; font-weight:700;">Test Details</h3>
+        <button id="modal-close" class="close-btn">&times;</button>
+      </div>
+      <div id="modal-content" class="modal-body">
+        <!-- Injected dynamically by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

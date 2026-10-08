@@ -1,0 +1,19 @@
+{
+  "name": "returned-ach-test-engine-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive Web Dashboard for Return ACH Test Engine",
+  "scripts": {
+    "start": "ach-test ui --port 8080",
+    "dev": "ach-test ui --port 8080 --reload"
+  },
+  "keywords": [
+    "ach",
+    "test-engine",
+    "dashboard",
+    "qa",
+    "fastapi"
+  ],
+  "author": "Return ACH QA Team",
+  "license": "Apache-2.0"
+}
