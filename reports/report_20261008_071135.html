@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Return ACH Test Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --border: #334155;
+      --pass: #10b981;
+      --fail: #ef4444;
+      --warn: #f59e0b;
+      --accent: #38bdf8;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; }
+    .badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+    .badge-pass { background: rgba(16, 185, 129, 0.2); color: var(--pass); border: 1px solid var(--pass); }
+    .badge-fail { background: rgba(239, 68, 68, 0.2); color: var(--fail); border: 1px solid var(--fail); }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: var(--card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border); }
+    .kpi-title { font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+    .kpi-value { font-size: 28px; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; background: var(--card-bg); border-radius: 8px; overflow: hidden; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { background: #0f172a; color: var(--text-dim); font-size: 12px; text-transform: uppercase; }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+    .status-tag { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .tag-pass { background: var(--pass); color: #000; }
+    .tag-fail { background: var(--fail); color: #fff; }
+    .tag-error { background: var(--warn); color: #000; }
+    pre { background: #0f172a; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; color: var(--accent); }
+    details { margin-top: 8px; }
+    summary { cursor: pointer; color: var(--accent); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 style="margin:0 0 4px 0;">Return ACH Test Engine Report</h1>
+        <div style="color:var(--text-dim); font-size:14px;">
+          Target: <code style="color:var(--accent);">http://localhost:8000</code> | Mode: <strong>mock</strong>
+        </div>
+      </div>
+      <div>
+        <span class="badge badge-pass">
+          Passed
+        </span>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi-card">
+        <div class="kpi-title">Total Tests</div>
+        <div class="kpi-value">74</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Passed</div>
+        <div class="kpi-value" style="color:var(--pass);">74</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Failed</div>
+        <div class="kpi-value" style="color:var(--fail);">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Pass Rate</div>
+        <div class="kpi-value">100.0%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Total Duration</div>
+        <div class="kpi-value">1039 ms</div>
+      </div>
+    </div>
+
+    <h2>Test Execution Details</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>ID</th>
+          <th>Category</th>
+          <th>HTTP</th>
+          <th>Latency</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>HEALTH_CHECK_ROOT</code></td>
+          <td>health</td>
+          <td>200</td>
+          <td>26.5ms</td>
+          <td>
+            <strong>System Health &amp; Availability</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate target API health endpoint responds HTTP 200 OK</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TRIGGERS_TEMPLATE_METHOD_NOT_ALLOWED</code></td>
+          <td>schema</td>
+          <td>405</td>
+          <td>12.5ms</td>
+          <td>
+            <strong>Invalid HTTP Method DELETE on /api/v1/triggers/{template}</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Sends unsupported HTTP method DELETE expecting 405 Method Not Allowed</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_CASES_CASE_ID_COMMENTS_VALID</code></td>
+          <td>schema</td>
+          <td>404</td>
+          <td>22.9ms</td>
+          <td>
+            <strong>Valid Schema Request - POST /api/v1/cases/{case_id}/comments</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit fully conformant payload meeting all OpenAPI schema constraints</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_CASES_CASE_ID_COMMENTS_MISSING_BODY</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>14.3ms</td>
+          <td>
+            <strong>Missing Required Field &#x27;body&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Omits required field &#x27;body&#x27; to verify 422 Unprocessable Entity</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_CASES_CASE_ID_COMMENTS_INVALID_TYPE_BODY</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>16.2ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;body&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (int instead of string) for &#x27;body&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_CASES_CASE_ID_COMMENTS_BOUNDARY_BODY_EMPTY_STRING</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>7.5ms</td>
+          <td>
+            <strong>Boundary Violation: body (EMPTY_STRING)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Empty string for field &#x27;body&#x27; requiring min length 1</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_CASES_CASE_ID_COMMENTS_BOUNDARY_BODY_EXCEEDS_MAX_LENGTH</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>12.2ms</td>
+          <td>
+            <strong>Boundary Violation: body (EXCEEDS_MAX_LENGTH)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">String exceeding max length (4000) for &#x27;body&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_CASES_CASE_ID_COMMENTS_STRICT_EXTRA_FIELD</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>11.9ms</td>
+          <td>
+            <strong>Strict Extra Field Rejection - POST /api/v1/cases/{case_id}/comments</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit unexpected additional property to strict model expecting 422</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_CASES_CASE_ID_COMMENTS_METHOD_NOT_ALLOWED</code></td>
+          <td>schema</td>
+          <td>405</td>
+          <td>11.7ms</td>
+          <td>
+            <strong>Invalid HTTP Method DELETE on /api/v1/cases/{case_id}/comments</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Sends unsupported HTTP method DELETE expecting 405 Method Not Allowed</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_DECISION_VALID</code></td>
+          <td>schema</td>
+          <td>404</td>
+          <td>17.0ms</td>
+          <td>
+            <strong>Valid Schema Request - POST /api/v1/tasks/{task_id}/decision</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit fully conformant payload meeting all OpenAPI schema constraints</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_DECISION_MISSING_ACTION</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>9.7ms</td>
+          <td>
+            <strong>Missing Required Field &#x27;action&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Omits required field &#x27;action&#x27; to verify 422 Unprocessable Entity</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_DECISION_INVALID_TYPE_ACTION</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>11.1ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;action&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (int instead of string) for &#x27;action&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_DECISION_INVALID_TYPE_PROPOSAL_HASH</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>14.6ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;proposal_hash&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (int instead of string) for &#x27;proposal_hash&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_DECISION_INVALID_TYPE_NOTE</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>10.5ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;note&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (int instead of string) for &#x27;note&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_DECISION_STRICT_EXTRA_FIELD</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>12.1ms</td>
+          <td>
+            <strong>Strict Extra Field Rejection - POST /api/v1/tasks/{task_id}/decision</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit unexpected additional property to strict model expecting 422</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_DECISION_METHOD_NOT_ALLOWED</code></td>
+          <td>schema</td>
+          <td>405</td>
+          <td>13.0ms</td>
+          <td>
+            <strong>Invalid HTTP Method DELETE on /api/v1/tasks/{task_id}/decision</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Sends unsupported HTTP method DELETE expecting 405 Method Not Allowed</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_PREVIEW_VALID</code></td>
+          <td>schema</td>
+          <td>404</td>
+          <td>13.3ms</td>
+          <td>
+            <strong>Valid Schema Request - POST /api/v1/tasks/{task_id}/preview</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit fully conformant payload meeting all OpenAPI schema constraints</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_PREVIEW_MISSING_MODIFIED_PROPOSAL</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>13.9ms</td>
+          <td>
+            <strong>Missing Required Field &#x27;modified_proposal&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Omits required field &#x27;modified_proposal&#x27; to verify 422 Unprocessable Entity</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_PREVIEW_INVALID_TYPE_MODIFIED_PROPOSAL</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>12.9ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;modified_proposal&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (list instead of object) for &#x27;modified_proposal&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_PREVIEW_STRICT_EXTRA_FIELD</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>11.7ms</td>
+          <td>
+            <strong>Strict Extra Field Rejection - POST /api/v1/tasks/{task_id}/preview</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit unexpected additional property to strict model expecting 422</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_PREVIEW_METHOD_NOT_ALLOWED</code></td>
+          <td>schema</td>
+          <td>405</td>
+          <td>9.3ms</td>
+          <td>
+            <strong>Invalid HTTP Method DELETE on /api/v1/tasks/{task_id}/preview</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Sends unsupported HTTP method DELETE expecting 405 Method Not Allowed</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_VIEWS_VALID</code></td>
+          <td>schema</td>
+          <td>404</td>
+          <td>13.0ms</td>
+          <td>
+            <strong>Valid Schema Request - POST /api/v1/tasks/{task_id}/views</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit fully conformant payload meeting all OpenAPI schema constraints</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_VIEWS_MISSING_SESSION_ID</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>8.2ms</td>
+          <td>
+            <strong>Missing Required Field &#x27;session_id&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Omits required field &#x27;session_id&#x27; to verify 422 Unprocessable Entity</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_VIEWS_MISSING_EVENT</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>6.6ms</td>
+          <td>
+            <strong>Missing Required Field &#x27;event&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Omits required field &#x27;event&#x27; to verify 422 Unprocessable Entity</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_VIEWS_INVALID_TYPE_SESSION_ID</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>10.3ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;session_id&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (int instead of string) for &#x27;session_id&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_VIEWS_INVALID_TYPE_EVENT</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>7.0ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;event&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (int instead of string) for &#x27;event&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_VIEWS_BOUNDARY_SESSION_ID_EMPTY_STRING</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>6.8ms</td>
+          <td>
+            <strong>Boundary Violation: session_id (EMPTY_STRING)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Empty string for field &#x27;session_id&#x27; requiring min length 1</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_VIEWS_BOUNDARY_SESSION_ID_EXCEEDS_MAX_LENGTH</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>6.8ms</td>
+          <td>
+            <strong>Boundary Violation: session_id (EXCEEDS_MAX_LENGTH)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">String exceeding max length (100) for &#x27;session_id&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_TASKS_TASK_ID_VIEWS_METHOD_NOT_ALLOWED</code></td>
+          <td>schema</td>
+          <td>405</td>
+          <td>7.9ms</td>
+          <td>
+            <strong>Invalid HTTP Method DELETE on /api/v1/tasks/{task_id}/views</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Sends unsupported HTTP method DELETE expecting 405 Method Not Allowed</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_POLICIES_POLICY_HASH_APPROVAL_VALID</code></td>
+          <td>schema</td>
+          <td>409</td>
+          <td>26.1ms</td>
+          <td>
+            <strong>Valid Schema Request - POST /api/v1/policies/{policy_hash}/approval</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit fully conformant payload meeting all OpenAPI schema constraints</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_POLICIES_POLICY_HASH_APPROVAL_INVALID_TYPE_NOTE</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>11.7ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;note&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (int instead of string) for &#x27;note&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_POLICIES_POLICY_HASH_APPROVAL_BOUNDARY_NOTE_EXCEEDS_MAX_LENGTH</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>5.3ms</td>
+          <td>
+            <strong>Boundary Violation: note (EXCEEDS_MAX_LENGTH)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">String exceeding max length (2000) for &#x27;note&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_POLICIES_POLICY_HASH_APPROVAL_STRICT_EXTRA_FIELD</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>5.9ms</td>
+          <td>
+            <strong>Strict Extra Field Rejection - POST /api/v1/policies/{policy_hash}/approval</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit unexpected additional property to strict model expecting 422</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_POST_API_V1_POLICIES_POLICY_HASH_APPROVAL_METHOD_NOT_ALLOWED</code></td>
+          <td>schema</td>
+          <td>405</td>
+          <td>5.1ms</td>
+          <td>
+            <strong>Invalid HTTP Method DELETE on /api/v1/policies/{policy_hash}/approval</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Sends unsupported HTTP method DELETE expecting 405 Method Not Allowed</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_PUT_API_V1_CONNECTORS_SYSTEM_VALID</code></td>
+          <td>schema</td>
+          <td>200</td>
+          <td>37.8ms</td>
+          <td>
+            <strong>Valid Schema Request - PUT /api/v1/connectors/{system}</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit fully conformant payload meeting all OpenAPI schema constraints</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_PUT_API_V1_CONNECTORS_SYSTEM_MISSING_PROVIDER</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>3.6ms</td>
+          <td>
+            <strong>Missing Required Field &#x27;provider&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Omits required field &#x27;provider&#x27; to verify 422 Unprocessable Entity</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_PUT_API_V1_CONNECTORS_SYSTEM_INVALID_TYPE_PROVIDER</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>3.9ms</td>
+          <td>
+            <strong>Invalid Type for Field &#x27;provider&#x27;</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Provides wrong data type (int instead of string) for &#x27;provider&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_PUT_API_V1_CONNECTORS_SYSTEM_BOUNDARY_PROVIDER_EMPTY_STRING</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>3.7ms</td>
+          <td>
+            <strong>Boundary Violation: provider (EMPTY_STRING)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Empty string for field &#x27;provider&#x27; requiring min length 1</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_PUT_API_V1_CONNECTORS_SYSTEM_BOUNDARY_PROVIDER_EXCEEDS_MAX_LENGTH</code></td>
+          <td>schema</td>
+          <td>422</td>
+          <td>3.9ms</td>
+          <td>
+            <strong>Boundary Violation: provider (EXCEEDS_MAX_LENGTH)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">String exceeding max length (64) for &#x27;provider&#x27;</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SCHEMA_PUT_API_V1_CONNECTORS_SYSTEM_METHOD_NOT_ALLOWED</code></td>
+          <td>schema</td>
+          <td>405</td>
+          <td>3.3ms</td>
+          <td>
+            <strong>Invalid HTTP Method POST on /api/v1/connectors/{system}</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Sends unsupported HTTP method POST expecting 405 Method Not Allowed</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R01</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>40.9ms</td>
+          <td>
+            <strong>ACH Return Reason Code R01 (Insufficient Funds (NSF))</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R01: Insufficient Funds (NSF)</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R02</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>50.1ms</td>
+          <td>
+            <strong>ACH Return Reason Code R02 (Account Closed)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R02: Account Closed</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R03</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>47.0ms</td>
+          <td>
+            <strong>ACH Return Reason Code R03 (No Account / Unable to Locate Account)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R03: No Account / Unable to Locate Account</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R04</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>39.5ms</td>
+          <td>
+            <strong>ACH Return Reason Code R04 (Invalid Account Number Structure)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R04: Invalid Account Number Structure</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R07</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>26.2ms</td>
+          <td>
+            <strong>ACH Return Reason Code R07 (Authorization Revoked by Customer)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R07: Authorization Revoked by Customer</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R08</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>27.3ms</td>
+          <td>
+            <strong>ACH Return Reason Code R08 (Payment Stopped)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R08: Payment Stopped</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R10</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>19.1ms</td>
+          <td>
+            <strong>ACH Return Reason Code R10 (Customer Advises Unauthorized / Not Authorized)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R10: Customer Advises Unauthorized / Not Authorized</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R16</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>24.2ms</td>
+          <td>
+            <strong>ACH Return Reason Code R16 (Account Frozen / Legal Block)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R16: Account Frozen / Legal Block</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_REASON_CODE_R20</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>18.7ms</td>
+          <td>
+            <strong>ACH Return Reason Code R20 (Non-Transaction Account)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Validate processing of NACHA return code R20: Non-Transaction Account</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_INVALID_REASON_CODE_R1</code></td>
+          <td>ach_domain</td>
+          <td>422</td>
+          <td>5.2ms</td>
+          <td>
+            <strong>Invalid Reason Code Shape: R1</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Verifies rejection of malformed reason code: Single digit reason code</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_INVALID_REASON_CODE_R100</code></td>
+          <td>ach_domain</td>
+          <td>422</td>
+          <td>3.2ms</td>
+          <td>
+            <strong>Invalid Reason Code Shape: R100</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Verifies rejection of malformed reason code: Three digit reason code</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_INVALID_REASON_CODE_INVALID</code></td>
+          <td>ach_domain</td>
+          <td>422</td>
+          <td>8.0ms</td>
+          <td>
+            <strong>Invalid Reason Code Shape: INVALID</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Verifies rejection of malformed reason code: Alphabetic non-code</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_INVALID_REASON_CODE_99R</code></td>
+          <td>ach_domain</td>
+          <td>422</td>
+          <td>7.0ms</td>
+          <td>
+            <strong>Invalid Reason Code Shape: 99R</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Verifies rejection of malformed reason code: Reversed reason code format</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_TRACE_TOO_SHORT</code></td>
+          <td>ach_domain</td>
+          <td>422</td>
+          <td>10.1ms</td>
+          <td>
+            <strong>Trace Number Below Minimum Length (4 &lt; 6 chars)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">original_trace_number below 6 alphanumeric chars must be rejected</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_TRACE_INVALID_SYMBOLS</code></td>
+          <td>ach_domain</td>
+          <td>422</td>
+          <td>6.5ms</td>
+          <td>
+            <strong>Trace Number With Disallowed Symbols</strong>
+            <div style="color:var(--text-dim);font-size:12px;">original_trace_number containing symbols outside alphanumeric and hyphen rejected</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_SETTLEMENT_DATE_TOO_OLD</code></td>
+          <td>ach_domain</td>
+          <td>422</td>
+          <td>4.7ms</td>
+          <td>
+            <strong>Implausibly Old Settlement Date (&lt; 2000)</strong>
+            <div style="color:var(--text-dim);font-size:12px;">return_settlement_date before year 2000 triggers settlement_is_not_absurd validator</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ERR_MALFORMED_JSON_POST_API_V1_TRIGGERS_TEMPLATE</code></td>
+          <td>error_handling</td>
+          <td>422</td>
+          <td>5.7ms</td>
+          <td>
+            <strong>Malformed JSON Body on POST /api/v1/triggers/{template}</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Send syntactically invalid JSON payload to verify 400 or 422 with standard error envelope</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ERR_MALFORMED_JSON_POST_API_V1_CASES_CASE_ID_COMMENTS</code></td>
+          <td>error_handling</td>
+          <td>422</td>
+          <td>5.4ms</td>
+          <td>
+            <strong>Malformed JSON Body on POST /api/v1/cases/{case_id}/comments</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Send syntactically invalid JSON payload to verify 400 or 422 with standard error envelope</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SEC_MISSING_USER_ID_API_V1_CASES_CASE_ID_COMMENTS</code></td>
+          <td>security</td>
+          <td>403</td>
+          <td>12.5ms</td>
+          <td>
+            <strong>Missing X-User-Id on POST /api/v1/cases/{case_id}/comments</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Executes authenticated operation without X-User-Id header expecting 403 Forbidden</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SEC_MISSING_USER_ID_API_V1_TASKS_TASK_ID_DECISION</code></td>
+          <td>security</td>
+          <td>403</td>
+          <td>10.9ms</td>
+          <td>
+            <strong>Missing X-User-Id on POST /api/v1/tasks/{task_id}/decision</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Executes authenticated operation without X-User-Id header expecting 403 Forbidden</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SEC_MISSING_USER_ID_API_V1_TASKS_TASK_ID_CLAIM</code></td>
+          <td>security</td>
+          <td>403</td>
+          <td>14.4ms</td>
+          <td>
+            <strong>Missing X-User-Id on POST /api/v1/tasks/{task_id}/claim</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Executes authenticated operation without X-User-Id header expecting 403 Forbidden</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SEC_MISSING_USER_ID_API_V1_TASKS_TASK_ID_PREVIEW</code></td>
+          <td>security</td>
+          <td>404</td>
+          <td>13.0ms</td>
+          <td>
+            <strong>Missing X-User-Id on POST /api/v1/tasks/{task_id}/preview</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Executes authenticated operation without X-User-Id header expecting 403 Forbidden</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SEC_MISSING_USER_ID_API_V1_TASKS_TASK_ID_VIEWS</code></td>
+          <td>security</td>
+          <td>403</td>
+          <td>9.9ms</td>
+          <td>
+            <strong>Missing X-User-Id on POST /api/v1/tasks/{task_id}/views</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Executes authenticated operation without X-User-Id header expecting 403 Forbidden</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>SEC_MISSING_USER_ID_API_V1_POLICIES_POLICY_HASH_APPROVAL</code></td>
+          <td>security</td>
+          <td>403</td>
+          <td>15.1ms</td>
+          <td>
+            <strong>Missing X-User-Id on POST /api/v1/policies/{policy_hash}/approval</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Executes authenticated operation without X-User-Id header expecting 403 Forbidden</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ERR_NOT_FOUND_API_V1_CASES_00000000_0000_0000_0000_000000000000</code></td>
+          <td>error_handling</td>
+          <td>404</td>
+          <td>17.5ms</td>
+          <td>
+            <strong>404 Not Found - Case Not Found</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Request non-existent resource at /api/v1/cases/00000000-0000-0000-0000-000000000000 expecting 404 with ErrorEnvelope</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ERR_NOT_FOUND_API_V1_TASKS_00000000_0000_0000_0000_000000000000</code></td>
+          <td>error_handling</td>
+          <td>404</td>
+          <td>13.8ms</td>
+          <td>
+            <strong>404 Not Found - Task Not Found</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Request non-existent resource at /api/v1/tasks/00000000-0000-0000-0000-000000000000 expecting 404 with ErrorEnvelope</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ERR_NOT_FOUND_API_V1_TRIGGERS_NON_EXISTENT_TEMPLATE_XYZ</code></td>
+          <td>error_handling</td>
+          <td>404</td>
+          <td>4.4ms</td>
+          <td>
+            <strong>404 Not Found - Template Not Found</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Request non-existent resource at /api/v1/triggers/non-existent-template-xyz expecting 404 with ErrorEnvelope</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ERR_CONFLICT_STALE_HASH</code></td>
+          <td>error_handling</td>
+          <td>404</td>
+          <td>12.8ms</td>
+          <td>
+            <strong>409 Conflict: Decision with Stale Proposal Hash</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Submit decision with mismatching proposal hash expecting 409 Conflict</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>CONN_LIST_REGISTERED_CONNECTORS</code></td>
+          <td>connector</td>
+          <td>200</td>
+          <td>13.5ms</td>
+          <td>
+            <strong>Connector Registry Availability</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Query /api/v1/connectors to verify registered connectors and their active provider</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_DEDUPE_INITIAL_TRIGGER</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>8.2ms</td>
+          <td>
+            <strong>Deduplication: Initial Trigger Submission</strong>
+            <div style="color:var(--text-dim);font-size:12px;">First submission of event triggers case creation (HTTP 201 Created)</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_LIFECYCLE_STEP1_TRIGGER</code></td>
+          <td>lifecycle</td>
+          <td>200</td>
+          <td>9.2ms</td>
+          <td>
+            <strong>Lifecycle Step 1: Trigger Case Creation</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Initiate Returned ACH workflow via trigger API</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_DEDUPE_REPLAY_TRIGGER</code></td>
+          <td>ach_domain</td>
+          <td>200</td>
+          <td>12.0ms</td>
+          <td>
+            <strong>Deduplication: Duplicate Replay Submission</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Duplicate submission of identical trace/reason/date returns HTTP 200 replay</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_LIFECYCLE_STEP2_CASE_STATE</code></td>
+          <td>lifecycle</td>
+          <td>200</td>
+          <td>49.7ms</td>
+          <td>
+            <strong>Lifecycle Step 2: Verify Created Case State</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Fetch case details using extracted case_id</div>
+            
+          </td>
+        </tr>
+
+        <tr>
+          <td><span class="status-tag tag-pass">PASS</span></td>
+          <td><code>ACH_LIFECYCLE_STEP3_QUERY_TASKS</code></td>
+          <td>lifecycle</td>
+          <td>200</td>
+          <td>12.0ms</td>
+          <td>
+            <strong>Lifecycle Step 3: Query Review Tasks for Case</strong>
+            <div style="color:var(--text-dim);font-size:12px;">Query review tasks generated by workflow</div>
+            
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

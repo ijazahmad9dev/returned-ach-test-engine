@@ -55,12 +55,6 @@ dmypy.json
 .pytype/
 .ruff_cache/
 
-# Test Engine Generated Output & Reports
-reports/*.json
-reports/*.md
-reports/*.html
-!reports/.gitkeep
-
 # Environment variables & secrets
 .env
 .env.*
