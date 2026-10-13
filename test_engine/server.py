@@ -38,6 +38,7 @@ class DiscoverRequest(BaseModel):
 class RunRequest(BaseModel):
     target_url: str = Field(default="http://localhost:8000")
     execution_mode: str = Field(default="mock")
+    allow_writes: bool = Field(default=False)
     suites: list[str] = Field(default_factory=lambda: ["health", "schema", "ach_domain", "security", "connectors"])
     max_concurrency: int = Field(default=5)
     timeout_seconds: float = Field(default=15.0)
@@ -47,8 +48,21 @@ class RunRequest(BaseModel):
     report_formats: list[str] = Field(default_factory=lambda: ["json", "markdown", "html"])
 
 
+def validate_target_host(target_url: str, allowed_hosts: list[str]) -> None:
+    from urllib.parse import urlparse
+    parsed = urlparse(target_url)
+    hostname = (parsed.hostname or "").lower()
+    allowed = [h.lower() for h in allowed_hosts]
+    if hostname not in allowed:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Target host '{hostname}' is not in allowed target hosts: {allowed}",
+        )
+
+
 def create_app() -> FastAPI:
     """Builds and configures the FastAPI test engine server application."""
+    base_cfg = EngineConfig()
     app = FastAPI(
         title="Return ACH Test Engine UI",
         version=__version__,
@@ -57,9 +71,9 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=base_cfg.allowed_origins,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
 
@@ -75,6 +89,7 @@ def create_app() -> FastAPI:
     async def discover_api(req: DiscoverRequest) -> dict[str, Any]:
         """Probes target URL and extracts API contracts."""
         cfg = EngineConfig(target_url=req.target_url, timeout_seconds=req.timeout_seconds)
+        validate_target_host(req.target_url, cfg.allowed_target_hosts)
         resolver = TargetResolver(cfg)
         resolution = await resolver.resolve()
 
@@ -131,6 +146,7 @@ def create_app() -> FastAPI:
         cfg = EngineConfig(
             target_url=req.target_url,
             execution_mode=ExecutionMode(req.execution_mode.lower()),
+            allow_writes=req.allow_writes,
             suites=req.suites,
             max_concurrency=req.max_concurrency,
             timeout_seconds=req.timeout_seconds,
@@ -139,6 +155,7 @@ def create_app() -> FastAPI:
             output_dir=Path(req.output_dir),
             report_formats=req.report_formats,  # pyright: ignore[reportArgumentType]
         )
+        validate_target_host(req.target_url, cfg.allowed_target_hosts)
 
         final_state = await run_test_workflow(cfg)
 

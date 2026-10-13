@@ -15,6 +15,7 @@ An autonomous, modular, production-ready test engine designed to discover, test,
   - [3. Re-exporting Reports from JSON](#3-re-exporting-reports-from-json)
 - [Configuration Reference](#configuration-reference)
 - [Testing Strategy & Suites](#testing-strategy--suites)
+  - [Detailed Data Flow & Payload Specifications Guide](TEST_DATA_FLOW_README.md)
 - [LangGraph Orchestration Pipeline](#langgraph-orchestration-pipeline)
 - [Mock vs. Real Connector Testing](#mock-vs-real-connector-testing)
 - [Test Reports & Artifacts](#test-reports--artifacts)
@@ -225,6 +226,9 @@ Settings can be specified via **CLI flags**, **environment variables** (prefixed
 ---
 
 ## Testing Strategy & Suites
+
+> [!TIP]
+> For concrete payload shapes, field validation rules, and status codes for data going in and out, see the dedicated [Test Specifications & Data Flow Guide](TEST_DATA_FLOW_README.md).
 
 1. **`health`**: Verifies API availability, `/api/v1/health` status, and connectivity.
 2. **`schema`**: Generates valid baseline payloads, missing required field permutations (422), invalid types (422), boundary violations (empty string, length overflows), strict extra fields rejection, and invalid HTTP verbs (405).

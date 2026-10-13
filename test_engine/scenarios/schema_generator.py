@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import copy
+from datetime import datetime, timezone
 import re
 from typing import Any
+import uuid
 
 from test_engine.logger import get_logger
 from test_engine.models.contract import EndpointContract, FieldValidationRule, ParameterSpec
@@ -21,8 +23,9 @@ logger = get_logger("scenarios.schema")
 class SchemaScenarioGenerator:
     """Generates schema validation test cases (valid, missing fields, type violations, boundary values)."""
 
-    def __init__(self, auth_user_id: str = "admin") -> None:
+    def __init__(self, auth_user_id: str = "admin", allow_writes: bool = False) -> None:
         self.auth_user_id = auth_user_id
+        self.allow_writes = allow_writes
 
     @classmethod
     def resolve_concrete_path(cls, path: str, parameters: list[ParameterSpec] | None = None) -> str:
@@ -60,13 +63,24 @@ class SchemaScenarioGenerator:
         if not endpoint.request_schema:
             return scenarios
 
+        # Protect live system: never modify connectors, policies, or delete resources in read-only mode
+        if not self.allow_writes:
+            path_lower = endpoint.path.lower()
+            if (
+                ("connector" in path_lower and endpoint.method in ("PUT", "POST", "PATCH", "DELETE"))
+                or ("policy" in path_lower and endpoint.method in ("PUT", "POST", "PATCH", "DELETE"))
+                or endpoint.method == "DELETE"
+            ):
+                logger.info(f"Skipping mutating endpoint in read-only mode: {endpoint.method} {endpoint.path}")
+                return scenarios
+
         concrete_path = self.resolve_concrete_path(endpoint.path, endpoint.parameters)
         auth_headers = {"X-User-Id": self.auth_user_id}
 
-        # 1. Synthesize baseline valid payload
+        # 1. Synthesize baseline valid payload (only for non-parameterized paths where resource creation/trigger is intended)
         baseline_payload = self.synthesize_valid_payload(endpoint)
-        if baseline_payload:
-            valid_status = [200, 201, 404, 409] if "{" in endpoint.path else [200, 201]
+        if baseline_payload and "{" not in endpoint.path:
+            expected_code = 201 if "201" in endpoint.response_schemas else 200
             scenarios.append(
                 TestCase(
                     id=f"SCHEMA_{endpoint.method}_{self._slugify(endpoint.path)}_VALID",
@@ -82,8 +96,8 @@ class SchemaScenarioGenerator:
                         json_body=baseline_payload,
                     ),
                     expected=ExpectedResponse(
-                        status_code=valid_status,
-                        description="Accepted with HTTP 200/201 (or 404 if resource ID does not exist in DB)",
+                        status_code=expected_code,
+                        description=f"Accepted with HTTP {expected_code}",
                     ),
                 )
             )
@@ -218,8 +232,8 @@ class SchemaScenarioGenerator:
                     json_body=None,
                 ),
                 expected=ExpectedResponse(
-                    status_code=[404, 405],
-                    description="Method Not Allowed (405) or Not Found (404)",
+                    status_code=405,
+                    description="Method Not Allowed (405)",
                 ),
             )
         )
@@ -269,21 +283,21 @@ class SchemaScenarioGenerator:
         if name == "note":
             return "valid review note"
         if "trace" in name:
-            return "TRC-VALID-100234"
+            return f"TRC-VAL-{uuid.uuid4().hex[:6].upper()}"
         if "reason_code" in name or "return_code" in name:
             return "R01"
         if "currency" in name:
             return "USD"
         if "date" in name:
-            return "2026-09-15"
+            return datetime.now(timezone.utc).strftime("%Y-%m-%d")
         if "tenant" in name:
             return "tenant_qa_01"
         if "account" in name:
-            return "acct_test_8819"
+            return "ACC-0001"
         if "customer" in name:
-            return "cust_test_4102"
+            return "CUS-0001"
         if "authorization" in name:
-            return "auth_test_9921"
+            return "AUTH-0001"
 
         if ftype in ("integer", "int"):
             min_val = int(rule.minimum) if rule.minimum is not None else 1000

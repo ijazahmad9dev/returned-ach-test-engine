@@ -67,7 +67,7 @@ class WorkflowConnectorBridge:
                         method="GET",
                         request=TestRequest(method="GET", path=concrete_path),
                         expected=ExpectedResponse(
-                            status_code=[200, 404],
+                            status_code=200,
                             description=f"Status for connector {c_type.value}",
                         ),
                     )

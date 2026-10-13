@@ -65,11 +65,11 @@ class RealConnectorTester(BaseConnectorTester):
             t0 = time.perf_counter()
             try:
                 resp = await client.get(
-                    f"{self.endpoint_url}/api/v1/info",
+                    f"{self.endpoint_url}/health",
                     headers=self.auth_headers,
                 )
                 latency = (time.perf_counter() - t0) * 1000
-                status = "PASS" if resp.status_code in (200, 404) else "FAIL"
+                status = "PASS" if resp.status_code == 200 else "FAIL"
 
                 # Check latency against SLA
                 details: dict[str, Any] = {

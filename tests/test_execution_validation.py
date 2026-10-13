@@ -48,7 +48,7 @@ def test_validator_success_and_failure():
         method="POST",
         request=TestRequest(path="/api/v1/triggers/returned-ach"),
         expected=ExpectedResponse(
-            status_code=[200, 201],
+            status_code=201,
             expected_keys=["case_id", "created"],
             max_latency_ms=1000.0,
         ),

@@ -57,7 +57,7 @@ class ErrorScenarioGenerator:
                             headers={"Content-Type": "application/json"},
                         ),
                         expected=ExpectedResponse(
-                            status_code=[400, 422],
+                            status_code=422,
                             expected_error_code="INVALID_INPUT",
                             description="Rejection of malformed JSON with ErrorEnvelope",
                         ),
@@ -111,8 +111,8 @@ class ErrorScenarioGenerator:
                             headers={},  # Intentionally omitting X-User-Id
                         ),
                         expected=ExpectedResponse(
-                            status_code=[401, 403, 404],  # 403 if missing auth, 404 if mock ID not found
-                            description="Unauthorized or Forbidden when X-User-Id is omitted",
+                            status_code=403,
+                            description="Forbidden when X-User-Id is omitted",
                         ),
                     )
                 )
@@ -175,8 +175,8 @@ class ErrorScenarioGenerator:
                         },
                     ),
                     expected=ExpectedResponse(
-                        status_code=[404, 409],
-                        description="409 Conflict (or 404 if task id dummy)",
+                        status_code=409,
+                        description="409 Conflict for stale proposal hash",
                     ),
                 )
             )

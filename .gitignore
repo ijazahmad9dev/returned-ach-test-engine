@@ -63,6 +63,7 @@ dmypy.json
 # Logs and databases
 *.log
 logs/
+reports/
 *.sqlite
 *.db
 

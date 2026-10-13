@@ -36,6 +36,8 @@ class ScenarioGenerator:
 
         # 1. Generic Schema Scenarios
         if run_all or "schema" in enabled_suites or TestSuite.SCHEMA.value in enabled_suites:
+            self.schema_gen.allow_writes = config.allow_writes
+            self.schema_gen.auth_user_id = config.auth_user_id
             for endpoint in contract.endpoints:
                 if endpoint.request_schema:
                     cases = self.schema_gen.generate_scenarios(endpoint)
