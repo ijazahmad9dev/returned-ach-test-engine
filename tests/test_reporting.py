@@ -30,7 +30,7 @@ def sample_report() -> FullTestReport:
             execution_time_ms=25.0,
             request_method="POST",
             request_url="http://localhost:8000/api/v1/triggers/returned-ach",
-            expected_status_code=[200, 201],
+            expected_status_code=201,
         ),
         TestExecutionResult(
             test_id="TC_02",

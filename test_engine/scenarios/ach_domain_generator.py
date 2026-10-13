@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import copy
+from datetime import datetime, timezone
 from typing import Any
+import uuid
 
 from test_engine.logger import get_logger
 from test_engine.models.contract import ApiContract, EndpointContract
@@ -83,37 +85,47 @@ class AchDomainScenarioGenerator:
     def _base_ach_payload(
         self,
         reason_code: str = "R01",
-        trace_number: str = "TRC-2026-900001",
-        settlement_date: str = "2026-09-15",
+        trace_number: str | None = None,
+        settlement_date: str | None = None,
         amount_minor: int = 15000,
         currency: str = "USD",
         scenario: str | None = None,
+        account_ref: str = "ACC-0001",
+        customer_ref: str = "CUS-0001",
+        authorization_ref: str = "AUTH-0001",
     ) -> dict[str, Any]:
-        """Constructs a standard Return ACH trigger payload conforming to Trigger contract."""
+        """Constructs a standard Return ACH trigger payload conforming to Trigger contract with fresh dynamic data."""
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        actual_trace = trace_number or f"TRC-{reason_code}-{uuid.uuid4().hex[:8].upper()}"
+        actual_date = settlement_date or today
+
         payload: dict[str, Any] = {
             "tenant_id": self.tenant_id,
-            "source_event_id": f"evt_{trace_number.lower()}",
-            "original_trace_number": trace_number,
+            "source_event_id": f"evt_{actual_trace.lower()}",
+            "original_trace_number": actual_trace,
             "return_reason_code": reason_code,
-            "return_settlement_date": settlement_date,
+            "return_settlement_date": actual_date,
             "amount_minor": amount_minor,
             "currency": currency,
-            "account_ref": "acct_ach_sample_101",
-            "customer_ref": "cust_ach_sample_202",
-            "authorization_ref": "auth_ach_sample_303",
+            "account_ref": account_ref,
+            "customer_ref": customer_ref,
+            "authorization_ref": authorization_ref,
         }
         if scenario:
             payload["scenario"] = scenario
         return payload
 
     def _generate_reason_code_matrix(self, trigger_ep: EndpointContract) -> list[TestCase]:
-        """Tests each core NACHA return reason code."""
+        """Tests each core NACHA return reason code with fresh trace references and exact 201 Created."""
         trigger_path = self._get_trigger_path(trigger_ep)
         cases: list[TestCase] = []
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         for code, description in NACHA_REASON_CODES.items():
+            trace = f"TRC-{code}-{uuid.uuid4().hex[:8].upper()}"
             payload = self._base_ach_payload(
                 reason_code=code,
-                trace_number=f"TRC-{code}-20260901",
+                trace_number=trace,
+                settlement_date=today,
             )
             cases.append(
                 TestCase(
@@ -129,9 +141,9 @@ class AchDomainScenarioGenerator:
                         json_body=payload,
                     ),
                     expected=ExpectedResponse(
-                        status_code=[200, 201],
+                        status_code=201,
                         expected_keys=["case_id", "created"],
-                        description=f"Trigger accepted for {code}",
+                        description=f"Trigger accepted and created for {code}",
                     ),
                 )
             )
@@ -248,11 +260,12 @@ class AchDomainScenarioGenerator:
     def _generate_deduplication_scenarios(self, trigger_ep: EndpointContract) -> list[TestCase]:
         """Tests deduplication: identical trace+code+date yields HTTP 200 replay with created=False."""
         trigger_path = self._get_trigger_path(trigger_ep)
-        dedupe_trace = "TRC-DEDUPE-UNIQUE-7721"
+        dedupe_trace = f"TRC-DEDUPE-{uuid.uuid4().hex[:8].upper()}"
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         payload = self._base_ach_payload(
             reason_code="R01",
             trace_number=dedupe_trace,
-            settlement_date="2026-09-20",
+            settlement_date=today,
         )
 
         cases: list[TestCase] = [
@@ -265,7 +278,7 @@ class AchDomainScenarioGenerator:
                 method="POST",
                 request=TestRequest(method="POST", path=trigger_path, json_body=payload),
                 expected=ExpectedResponse(
-                    status_code=[200, 201],
+                    status_code=201,
                     expected_keys=["case_id", "created"],
                     description="Initial creation accepted",
                 ),
@@ -301,8 +314,9 @@ class AchDomainScenarioGenerator:
         tasks_ep = contract.find_endpoint("/api/v1/tasks", "GET")
 
         # If case/task endpoints exist in contract, generate sequential lifecycle test
-        flow_trace = "TRC-FLOW-LIFECYCLE-991"
-        payload = self._base_ach_payload(reason_code="R01", trace_number=flow_trace)
+        flow_trace = f"TRC-FLOW-{uuid.uuid4().hex[:8].upper()}"
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        payload = self._base_ach_payload(reason_code="R01", trace_number=flow_trace, settlement_date=today)
 
         lifecycle_cases: list[TestCase] = []
 
@@ -314,7 +328,7 @@ class AchDomainScenarioGenerator:
             endpoint_path=trigger_ep.path,
             method="POST",
             request=TestRequest(method="POST", path=trigger_path, json_body=payload),
-            expected=ExpectedResponse(status_code=[200, 201], expected_keys=["case_id"]),
+            expected=ExpectedResponse(status_code=201, expected_keys=["case_id"]),
             is_stateful=True,
             step_number=1,
             context_extractors={"case_id": "case_id"},

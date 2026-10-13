@@ -57,6 +57,23 @@ class EngineConfig(BaseSettings):
         default=ExecutionMode.MOCK,
         description="Execution mode: mock or real upstream connectors",
     )
+    allow_writes: bool = Field(
+        default=False,
+        description="Whether mutating operations that change system/connector settings or policies are permitted (read-only by default)",
+    )
+    allowed_origins: list[str] = Field(
+        default_factory=lambda: [
+            "http://localhost:8080",
+            "http://127.0.0.1:8080",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ],
+        description="Allowed CORS origins for the test engine web UI",
+    )
+    allowed_target_hosts: list[str] = Field(
+        default_factory=lambda: ["localhost", "127.0.0.1", "0.0.0.0", "testserver", "mock", "mockbackend"],
+        description="Whitelisted target hosts to probe or test against",
+    )
     suites: list[str] = Field(
         default_factory=lambda: [
             TestSuite.HEALTH.value,

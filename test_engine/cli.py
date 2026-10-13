@@ -86,6 +86,12 @@ def main() -> None:
     help="Path to YAML configuration file",
 )
 @click.option(
+    "--allow-writes",
+    is_flag=True,
+    default=False,
+    help="Allow mutating requests that change system/connector settings or policies (default: read-only)",
+)
+@click.option(
     "--verbose",
     "-v",
     is_flag=True,
@@ -100,6 +106,7 @@ def run(
     output_dir: Path,
     report_formats: tuple[str, ...],
     config: Optional[Path],
+    allow_writes: bool,
     verbose: bool,
 ) -> None:
     """Execute the Return ACH test engine against a target API."""
@@ -111,6 +118,7 @@ def run(
         "max_concurrency": concurrency,
         "timeout_seconds": timeout,
         "output_dir": output_dir,
+        "allow_writes": allow_writes,
         "verbose": verbose,
     }
     if suites:

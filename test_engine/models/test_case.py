@@ -40,7 +40,7 @@ class ExpectedResponse(BaseModel):
     """Expected criteria for response validation."""
     __test__ = False
 
-    status_code: int | list[int] = 200
+    status_code: int = 200
     expected_error_code: str | None = None
     expected_error_field: str | None = None
     expected_keys: list[str] = Field(default_factory=list)

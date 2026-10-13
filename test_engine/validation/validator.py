@@ -24,12 +24,8 @@ class ResponseValidator:
         outcomes: list[ValidationOutcome] = []
         failures: list[str] = []
 
-        # 1. HTTP Status Code validation
-        status_passed = False
-        if isinstance(expected.status_code, list):
-            status_passed = response.status_code in expected.status_code
-        else:
-            status_passed = response.status_code == expected.status_code
+        # 1. HTTP Status Code validation (one exact status per test)
+        status_passed = response.status_code == expected.status_code
 
         outcomes.append(
             ValidationOutcome(
