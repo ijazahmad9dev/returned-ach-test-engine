@@ -378,3 +378,129 @@ class ReportExporterManager:
             exported_paths["html"] = html_path
 
         return exported_paths
+
+
+class JourneyReportExporter:
+    """Exports human-in-the-loop Journey evaluation reports in plain English with screenshots."""
+
+    @staticmethod
+    def render_console(results: list[Any]) -> None:
+        table = Table(title="Real-User Journey Evaluation Results (Phase 2)", show_lines=True)
+        table.add_column("Status", width=8, justify="center")
+        table.add_column("Journey", style="cyan", width=12)
+        table.add_column("Scenario", style="magenta", width=32)
+        table.add_column("Duration", justify="right", width=9)
+        table.add_column("Plain-English Verdict", style="dim")
+
+        for res in results:
+            status_style = "bold green" if res.passed else "bold red"
+            status_text = "PASS" if res.passed else "FAIL"
+            table.add_row(
+                f"[{status_style}]{status_text}[/{status_style}]",
+                res.journey_id,
+                res.name,
+                f"{res.duration_seconds:.2f}s",
+                res.plain_english_summary,
+            )
+
+        console.print(table)
+
+    @staticmethod
+    def export_markdown(results: list[Any], output_file: Path) -> Path:
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        all_passed = all(r.passed for r in results)
+        status_banner = "PASSED" if all_passed else "FAILED"
+
+        lines = [
+            f"# Real-User Evaluation Report: Journeys 1 to 3 ({status_banner})",
+            "",
+            "> **Approach:** Treat AgentOS as a black box and judge it against the client requirements.",
+            "> Tested with real entry points (Stripe / Processor webhooks) and human personas in the Control Center UI (Playwright).",
+            "",
+            "## Summary",
+            "",
+            "| Journey | Scenario | Verdict | Duration | Summary |",
+            "|---|---|:---:|---:|---|",
+        ]
+
+        for r in results:
+            tag = "✅ PASS" if r.passed else "❌ FAIL"
+            lines.append(
+                f"| **{r.journey_id}** | {r.name} | {tag} | {r.duration_seconds:.2f}s | {r.plain_english_summary} |"
+            )
+
+        lines.append("")
+        lines.append("## Detailed Journey Walkthroughs")
+        lines.append("")
+
+        for r in results:
+            lines.append(f"### {r.name} (`{r.journey_id}`)")
+            lines.append("")
+            lines.append(f"- **Scenario Key:** `{r.scenario}`")
+            lines.append(f"- **Status:** {'✅ PASSED' if r.passed else '❌ FAILED'}")
+            lines.append(f"- **Verdict:** {r.plain_english_summary}")
+            lines.append("")
+
+            lines.append("#### Steps Executed")
+            lines.append("")
+            lines.append("| Step | Title | Actor | Action | Expected | Actual | Status | Screenshot |")
+            lines.append("|---|---|---|---|---|---|:---:|---|")
+
+            for s in r.steps:
+                s_tag = "✅ PASS" if s.status == "PASS" else ("❓ QUESTION" if s.status == "QUESTION" else "❌ FAIL")
+                actor = s.persona or "system"
+                shot_md = f"[{Path(s.screenshot_path).name}](file://{Path(s.screenshot_path).resolve()})" if s.screenshot_path else "—"
+                lines.append(
+                    f"| {s.step_id} | {s.title} | `{actor}` | `{s.action_type}` | {s.expected} | {s.actual} | {s_tag} | {shot_md} |"
+                )
+
+            if r.open_questions:
+                lines.append("")
+                lines.append("#### ❓ Open Questions / Policy Ambiguities")
+                for q in r.open_questions:
+                    lines.append(f"- {q}")
+
+            lines.append("")
+            lines.append("---")
+            lines.append("")
+
+        with output_file.open("w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+
+        logger.info("Markdown journey report saved to %s", output_file)
+        return output_file
+
+    @staticmethod
+    def export_json(results: list[Any], output_file: Path) -> Path:
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        raw_list = []
+        for r in results:
+            raw_list.append({
+                "journey_id": r.journey_id,
+                "name": r.name,
+                "scenario": r.scenario,
+                "passed": r.passed,
+                "duration_seconds": r.duration_seconds,
+                "summary": r.plain_english_summary,
+                "open_questions": r.open_questions,
+                "steps": [
+                    {
+                        "step_id": s.step_id,
+                        "title": s.title,
+                        "persona": s.persona,
+                        "action_type": s.action_type,
+                        "expected": s.expected,
+                        "actual": s.actual,
+                        "status": str(s.status),
+                        "screenshot": str(s.screenshot_path) if s.screenshot_path else None,
+                        "notes": s.notes,
+                    }
+                    for s in r.steps
+                ],
+            })
+
+        with output_file.open("w", encoding="utf-8") as f:
+            json.dump(raw_list, f, indent=2)
+
+        logger.info("JSON journey report saved to %s", output_file)
+        return output_file

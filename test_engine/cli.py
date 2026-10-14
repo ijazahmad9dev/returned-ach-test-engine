@@ -316,5 +316,100 @@ def ui(host: str, port: int, reload: bool) -> None:
     uvicorn.run(app, host=host, port=port)
 
 
+@main.command()
+@click.option(
+    "--journey",
+    "-j",
+    type=click.Choice(["1", "2", "3", "all"], case_sensitive=False),
+    default="all",
+    help="Which user journey to execute: 1 (Scenario A), 2 (Retry outcome), 3 (Scenario B), or all",
+)
+@click.option(
+    "--url",
+    "-u",
+    default="http://localhost:8000",
+    help="Runtime API base URL (default: http://localhost:8000)",
+)
+@click.option(
+    "--ui-url",
+    default="http://localhost:3000",
+    help="Control Center UI base URL (default: http://localhost:3000)",
+)
+@click.option(
+    "--headless/--no-headless",
+    default=True,
+    help="Run Playwright browser in headless mode (default: True)",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path("reports"),
+    help="Directory to save test reports and screenshots (default: reports)",
+)
+def journey(
+    journey: str,
+    url: str,
+    ui_url: str,
+    headless: bool,
+    output_dir: Path,
+) -> None:
+    """Execute real-user evaluation journeys (Phase 2)."""
+    from test_engine.journeys.driver_browser import BrowserDriver
+    from test_engine.journeys.runner import JourneyRunner
+    from test_engine.reporting.exporters import JourneyReportExporter
+
+    setup_logger()
+    console.print(f"[bold cyan]Starting Phase 2 Real-User Journey Evaluation...[/bold cyan]")
+    console.print(f"Target Runtime: [cyan]{url}[/cyan] | UI: [cyan]{ui_url}[/cyan] | Headless: {headless}")
+
+    output_dir = Path(output_dir)
+    screenshot_dir = output_dir / "screenshots"
+    screenshot_dir.mkdir(parents=True, exist_ok=True)
+
+    runner = JourneyRunner(
+        runtime_url=url,
+        ui_url=ui_url,
+        headless=headless,
+        screenshot_dir=str(screenshot_dir),
+    )
+
+    async def _execute() -> list:
+        async with BrowserDriver(
+            ui_url=ui_url,
+            headless=headless,
+            screenshot_dir=str(screenshot_dir),
+        ) as browser:
+            if journey == "1":
+                return [await runner.run_journey_1(browser)]
+            elif journey == "2":
+                return [await runner.run_journey_2(browser)]
+            elif journey == "3":
+                return [await runner.run_journey_3(browser)]
+            else:
+                return await runner.run_all_journeys()
+
+    try:
+        results = asyncio.run(_execute())
+    except Exception as e:
+        console.print(f"[bold red]Journey execution failed: {e}[/bold red]")
+        sys.exit(1)
+
+    # Export Reports
+    JourneyReportExporter.render_console(results)
+
+    md_path = output_dir / "journey_report.md"
+    JourneyReportExporter.export_markdown(results, md_path)
+    console.print(f"Markdown report generated at: [green]{md_path}[/green]")
+
+    json_path = output_dir / "journey_report.json"
+    JourneyReportExporter.export_json(results, json_path)
+    console.print(f"JSON report generated at: [green]{json_path}[/green]")
+
+    all_passed = all(r.passed for r in results)
+    if not all_passed:
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     main()

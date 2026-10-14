@@ -1,0 +1,77 @@
+# Journey definitions written from the requirements (Handoff PDF & Client Spec)
+# One place for what "correct" means.
+
+journeys:
+  - id: "journey_1"
+    name: "Scenario A: Insufficient Funds (R01), $89.00"
+    description: >
+      A failing debit arrives for insufficient funds ($89.00). The case routes to Marcus
+      (payments specialist). Marcus verifies the suggested retry date (4 business days out),
+      checks that the drafted notice names the date, moves the date if needed, and approves.
+      On approval, the retry is handed to the client's payment process without AgentOS debiting.
+    scenario: "scenario-a-insufficient-funds"
+    trigger:
+      return_code: "R01"
+      amount_minor: 8900
+      currency: "USD"
+      category: "insufficient_funds"
+      fixture: "TRC-SCENARIO-A"
+    actor:
+      persona: "marcus"
+      role: "payments_specialist"
+    expectations:
+      routing_role: "payments_specialist"
+      recommendation: "reinitiate"
+      retry_offered: true
+      suggested_wait_business_days: 4
+      notice_mentions_retry_date: true
+      customer_identity_visible: true
+      can_modify_date: true
+      handoff_target: "client_payment_process"
+      agentos_debits_directly: false
+
+  - id: "journey_2"
+    name: "Retry Outcome (Settled vs. Failed Again)"
+    description: >
+      A retry of Journey 1's debit is executed by the client processor.
+      When settled, the case records the retry as settled and Reports counts it.
+      When failed again, the case reopens for a human reviewer/escalation owner.
+    scenario: "retry-outcome"
+    expectations:
+      settled:
+        outcome: "retry_settled"
+        case_closed: true
+        counted_in_reports: true
+      failed_again:
+        outcome: "retry_returned"
+        case_reopened: true
+        new_task_opened: true
+
+  - id: "journey_3"
+    name: "Scenario B: No Account (R03), $125.00"
+    description: >
+      A failing debit arrives because the account does not exist ($125.00).
+      The case routes to Priya (reviewer). No retry is offered. A request for a new
+      payment method is drafted by email/SMS. On approval, the case stays open waiting
+      for the customer with a follow-up task. Priya closes it with a resolution reason
+      when the customer replies.
+    scenario: "scenario-b-closed-or-invalid-account"
+    trigger:
+      return_code: "R03"
+      amount_minor: 12500
+      currency: "USD"
+      category: "closed_or_invalid_account"
+      fixture: "TRC-SCENARIO-B"
+    actor:
+      persona: "priya"
+      role: "reviewer"
+    expectations:
+      routing_role: "reviewer"
+      retry_offered: false
+      replacement_method_offered: true
+      notice_drafted: true
+      notice_template: "replacement_method_request"
+      on_approval_state: "awaiting_response"
+      follow_up_task_created: true
+      follow_up_assigned_role: "reviewer"
+      closable_with_resolution: true
