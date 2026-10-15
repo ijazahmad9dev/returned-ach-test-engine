@@ -27,6 +27,11 @@ def test_journey_definitions_yaml():
     assert "journey_1" in journeys
     assert "journey_2" in journeys
     assert "journey_3" in journeys
+    assert "journey_4" in journeys
+    assert "journey_5" in journeys
+    assert "journey_6" in journeys
+    assert "journey_7" in journeys
+    assert "journey_8" in journeys
 
     # Check Journey 1 (Scenario A) expectations
     j1 = journeys["journey_1"]
@@ -50,6 +55,38 @@ def test_journey_definitions_yaml():
     assert j3["actor"]["role"] == "reviewer"
     assert j3["expectations"]["retry_offered"] is False
     assert j3["expectations"]["on_approval_state"] == "awaiting_response"
+
+    # Check Journey 4 (Suspected Fraud) expectations
+    j4 = journeys["journey_4"]
+    assert j4["trigger"]["return_code"] == "R10"
+    assert j4["actor"]["persona"] == "sam"
+    assert j4["actor"]["role"] == "fraud_analyst"
+    assert j4["expectations"]["priority"] == "urgent"
+    assert j4["expectations"]["customer_message_drafted"] is False
+    assert j4["expectations"]["can_block_account"] is True
+
+    # Check Journey 5 (Protected Customer) expectations
+    j5 = journeys["journey_5"]
+    assert j5["trigger"]["fixture"] == "TRC-PROTECTED"
+    assert j5["actor"]["persona"] == "dana"
+    assert j5["actor"]["role"] == "escalation_owner"
+    assert j5["expectations"]["approval_prohibited"] is True
+    assert j5["expectations"]["expected_resolution"] == "legal_or_compliance_hold"
+
+    # Check Journey 6 (Duplicate Event) expectations
+    j6 = journeys["journey_6"]
+    assert j6["expectations"]["second_delivery"]["duplicate"] is True
+    assert j6["expectations"]["no_duplicate_task"] is True
+
+    # Check Journey 7 (Permissions & Privacy) expectations
+    j7 = journeys["journey_7"]
+    assert j7["expectations"]["expected_http_status"] == 403
+    assert j7["expectations"]["identity_redacted_for_non_authorized"] is True
+
+    # Check Journey 8 (Executive Reporting) expectations
+    j8 = journeys["journey_8"]
+    assert j8["actor"]["persona"] == "admin"
+    assert j8["expectations"]["reports_accessible"] is True
 
 
 def test_journey_report_exporter(tmp_path: Path):
@@ -94,7 +131,7 @@ def test_journey_report_exporter(tmp_path: Path):
     JourneyReportExporter.export_markdown(results, md_file)
     assert md_file.exists()
     content = md_file.read_text(encoding="utf-8")
-    assert "# Real-User Evaluation Report: Journeys 1 to 3" in content
+    assert "# Real-User Evaluation Report: Full Coverage" in content
     assert "Scenario A: Insufficient Funds (R01)" in content
     assert "fake_shot.png" in content
     assert "✅ PASS" in content

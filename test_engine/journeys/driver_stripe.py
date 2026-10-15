@@ -136,29 +136,7 @@ class StripeDriver:
             return resp.json()
 
     async def get_or_create_scenario_a_case(self) -> dict[str, Any]:
-        """Finds an existing open approval task for payments_specialist or triggers a new return."""
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{self.runtime_url}/api/v1/tasks",
-                params={"limit": 50},
-                headers={"X-User-Id": "marcus"},
-            )
-            if resp.status_code == 200:
-                items = resp.json().get("items", [])
-                for item in items:
-                    if (
-                        item.get("assigned_role") == "payments_specialist"
-                        and item.get("type") == "approval"
-                        and item.get("status") == "open"
-                    ):
-                        logger.info("Found open approval task for payments_specialist: %s", item["id"])
-                        return {
-                            "case_id": item["case_id"],
-                            "task_id": item["id"],
-                            "created": False,
-                        }
-
-        # Trigger fresh demo scenario A (ACH-52)
+        """Triggers a fresh Scenario A demo case (ACH-52 / TRC-SCENARIO-A)."""
         demo_res = await self.trigger_demo_scenario("ACH-52", fresh=True)
         case_id = demo_res.get("case_id")
         if case_id:
@@ -168,29 +146,7 @@ class StripeDriver:
         return demo_res
 
     async def get_or_create_scenario_b_case(self) -> dict[str, Any]:
-        """Finds an existing open approval task for reviewer (R03) or triggers a new return."""
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{self.runtime_url}/api/v1/tasks",
-                params={"limit": 50},
-                headers={"X-User-Id": "priya"},
-            )
-            if resp.status_code == 200:
-                items = resp.json().get("items", [])
-                for item in items:
-                    if (
-                        item.get("assigned_role") == "reviewer"
-                        and item.get("type") == "approval"
-                        and item.get("status") == "open"
-                    ):
-                        logger.info("Found open approval task for reviewer: %s", item["id"])
-                        return {
-                            "case_id": item["case_id"],
-                            "task_id": item["id"],
-                            "created": False,
-                        }
-
-        # Trigger fresh demo scenario B (ACH-53)
+        """Triggers a fresh Scenario B demo case (ACH-53 / TRC-SCENARIO-B)."""
         demo_res = await self.trigger_demo_scenario("ACH-53", fresh=True)
         case_id = demo_res.get("case_id")
         if case_id:
@@ -198,3 +154,25 @@ class StripeDriver:
             open_task = case_data.get("open_task") or {}
             demo_res["task_id"] = open_task.get("id")
         return demo_res
+
+    async def get_or_create_fraud_case(self) -> dict[str, Any]:
+        """Triggers a fresh Suspected Fraud demo case (ACH-47 / TRC-R10-FRAUD)."""
+        demo_res = await self.trigger_demo_scenario("ACH-47", fresh=True)
+        case_id = demo_res.get("case_id")
+        if case_id:
+            case_data = await self._get_case(case_id, user_id="sam")
+            open_task = case_data.get("open_task") or {}
+            demo_res["task_id"] = open_task.get("id")
+        return demo_res
+
+    async def get_or_create_protected_case(self) -> dict[str, Any]:
+        """Triggers a fresh Protected Customer (Bankruptcy) demo case (ACH-08 / TRC-PROTECTED)."""
+        demo_res = await self.trigger_demo_scenario("ACH-08", fresh=True)
+        case_id = demo_res.get("case_id")
+        if case_id:
+            case_data = await self._get_case(case_id, user_id="dana")
+            open_task = case_data.get("open_task") or {}
+            demo_res["task_id"] = open_task.get("id")
+        return demo_res
+
+

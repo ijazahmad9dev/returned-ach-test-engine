@@ -320,9 +320,9 @@ def ui(host: str, port: int, reload: bool) -> None:
 @click.option(
     "--journey",
     "-j",
-    type=click.Choice(["1", "2", "3", "all"], case_sensitive=False),
+    type=click.Choice(["1", "2", "3", "4", "5", "6", "7", "8", "all"], case_sensitive=False),
     default="all",
-    help="Which user journey to execute: 1 (Scenario A), 2 (Retry outcome), 3 (Scenario B), or all",
+    help="Which user journey to execute: 1 to 8, or all (Phase 3 Full Coverage)",
 )
 @click.option(
     "--url",
@@ -354,13 +354,13 @@ def journey(
     headless: bool,
     output_dir: Path,
 ) -> None:
-    """Execute real-user evaluation journeys (Phase 2)."""
+    """Execute real-user evaluation journeys (Phase 3 Full Coverage)."""
     from test_engine.journeys.driver_browser import BrowserDriver
     from test_engine.journeys.runner import JourneyRunner
     from test_engine.reporting.exporters import JourneyReportExporter
 
     setup_logger()
-    console.print(f"[bold cyan]Starting Phase 2 Real-User Journey Evaluation...[/bold cyan]")
+    console.print(f"[bold cyan]Starting Phase 3 Full Coverage Real-User Journey Evaluation...[/bold cyan]")
     console.print(f"Target Runtime: [cyan]{url}[/cyan] | UI: [cyan]{ui_url}[/cyan] | Headless: {headless}")
 
     output_dir = Path(output_dir)
@@ -386,6 +386,16 @@ def journey(
                 return [await runner.run_journey_2(browser)]
             elif journey == "3":
                 return [await runner.run_journey_3(browser)]
+            elif journey == "4":
+                return [await runner.run_journey_4(browser)]
+            elif journey == "5":
+                return [await runner.run_journey_5(browser)]
+            elif journey == "6":
+                return [await runner.run_journey_6(browser)]
+            elif journey == "7":
+                return [await runner.run_journey_7(browser)]
+            elif journey == "8":
+                return [await runner.run_journey_8(browser)]
             else:
                 return await runner.run_all_journeys()
 

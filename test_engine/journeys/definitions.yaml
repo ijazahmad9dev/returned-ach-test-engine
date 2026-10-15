@@ -75,3 +75,135 @@ journeys:
       follow_up_task_created: true
       follow_up_assigned_role: "reviewer"
       closable_with_resolution: true
+
+  - id: "journey_4"
+    name: "Journey 4: Suspected Fraud (R10 on new account)"
+    description: >
+      An unauthorized return (R10) arrives for a brand-new account sharing a device
+      with multiple other returns. The case routes to Sam (fraud_analyst) as an urgent task.
+      Retry is ruled out and no customer contact is drafted. The analyst is offered actions
+      to block the account, stop future debits, and open a fraud investigation.
+    scenario: "suspected-fraud"
+    trigger:
+      return_code: "R10"
+      amount_minor: 12900
+      currency: "USD"
+      category: "unauthorized"
+      fixture: "TRC-R10-FRAUD"
+    actor:
+      persona: "sam"
+      role: "fraud_analyst"
+    expectations:
+      routing_role: "fraud_analyst"
+      priority: "urgent"
+      retry_offered: false
+      customer_message_drafted: false
+      suppression_reason: "communication_not_permitted"
+      actions_offered:
+        - "block_account"
+        - "cancel_future_billing"
+        - "open_fraud_investigation"
+      can_open_fraud_investigation: true
+      can_block_account: true
+
+  - id: "journey_5"
+    name: "Journey 5: Protected Customer (Bankruptcy)"
+    description: >
+      A return arrives for an account with a bankruptcy flag on file. Bankruptcy stops
+      the case at the protection gate before interpretation. The case escalates immediately
+      to Dana (escalation_owner) as an urgent task. Nothing can be approved, and Dana closes
+      the case with a legal reason (Legal or compliance hold).
+    scenario: "protected-account"
+    trigger:
+      return_code: "R01"
+      amount_minor: 40000
+      currency: "USD"
+      category: "insufficient_funds"
+      fixture: "TRC-PROTECTED"
+    actor:
+      persona: "dana"
+      role: "escalation_owner"
+    expectations:
+      routing_role: "escalation_owner"
+      priority: "urgent"
+      stopped_at: "protection"
+      approval_prohibited: true
+      customer_message_drafted: false
+      allowed_actions:
+        - "route_manual"
+        - "reject"
+      closable_with_legal_reason: true
+      expected_resolution: "legal_or_compliance_hold"
+
+  - id: "journey_6"
+    name: "Journey 6: Duplicate Event"
+    description: >
+      The exact same processor event / return is delivered twice.
+      AgentOS recognizes the second delivery as a duplicate, associates it with the
+      existing case, does not spawn a second case, and creates no duplicate tasks.
+    scenario: "duplicate-event"
+    trigger:
+      return_code: "R01"
+      amount_minor: 8900
+      currency: "USD"
+      category: "insufficient_funds"
+      fixture: "TRC-NSF-ELIGIBLE"
+    actor:
+      persona: "system"
+      role: "system"
+    expectations:
+      first_delivery:
+        created: true
+        duplicate: false
+      second_delivery:
+        created: false
+        duplicate: true
+      single_case_created: true
+      no_duplicate_task: true
+
+  - id: "journey_7"
+    name: "Journey 7: Permissions & Privacy"
+    description: >
+      Validates role-based authorization and data privacy boundaries.
+      Users with the wrong role cannot make decisions on tasks assigned to others (HTTP 403).
+      Roles without identity access (e.g. Lena, claims intake analyst) never see the customer's
+      real name, which is redacted to NAME_1 with customer details hidden.
+    scenario: "permissions-and-privacy"
+    actors:
+      wrong_role:
+        persona: "marcus"
+        role: "payments_specialist"
+      no_identity_access:
+        persona: "lena"
+        role: "claims_intake_analyst"
+      with_identity_access:
+        persona: "sam"
+        role: "fraud_analyst"
+    expectations:
+      wrong_role_decision_rejected: true
+      expected_error_code: "wrong_role"
+      expected_http_status: 403
+      identity_redacted_for_non_authorized: true
+      identity_visible_for_authorized: true
+      ui_displays_redaction_notice: true
+
+  - id: "journey_8"
+    name: "Journey 8: Executive Reporting"
+    description: >
+      Admin accesses the Executive Reports dashboard (/reports).
+      Verifies that return rates, settled retries, and recovered dollars reflect
+      the outcomes produced during test execution.
+    scenario: "executive-reporting"
+    actor:
+      persona: "admin"
+      role: "admin"
+    expectations:
+      reports_accessible: true
+      metrics_present:
+        - "return_rate"
+        - "unauthorized_return_rate"
+        - "administrative_return_rate"
+        - "recovered_by_retries"
+        - "settled_retries"
+      metrics_reflect_activity: true
+

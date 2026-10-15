@@ -14,6 +14,7 @@ class Persona(str, Enum):
     DANA = "dana"              # escalation_owner
     SAM = "sam"                # fraud_analyst
     TOM = "tom"                # collections_specialist
+    LENA = "lena"              # claims_intake_analyst (no identity access)
     ADMIN = "admin"            # admin
 
 
@@ -23,6 +24,7 @@ PERSONA_ROLES: dict[str, str] = {
     Persona.DANA.value: "escalation_owner",
     Persona.SAM.value: "fraud_analyst",
     Persona.TOM.value: "collections_specialist",
+    Persona.LENA.value: "claims_intake_analyst",
     Persona.ADMIN.value: "admin",
 }
 
