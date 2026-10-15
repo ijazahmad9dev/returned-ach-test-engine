@@ -119,6 +119,16 @@ class BrowserDriver:
         # Detect recommendation
         has_retry_rec = any("Retry the payment" in b for b in buttons)
         has_replacement_rec = any("Ask for a new payment method" in b for b in buttons)
+        has_block_account = any("Block account" in b for b in buttons)
+        has_cancel_billing = any("Cancel future billing" in b for b in buttons)
+        has_open_fraud_inv = (
+            any("Open a fraud investigation" in b for b in buttons)
+            or "Open a fraud investigation" in body_text
+        )
+        has_handle_manually = any("Handle manually" in b for b in buttons)
+
+        # Detect priority
+        is_urgent = "Urgent" in body_text
 
         # Detect notice preview
         has_notice_preview = (
@@ -132,8 +142,13 @@ class BrowserDriver:
             "buttons": buttons,
             "suggested_date": date_val,
             "customer_identity_locked": locked,
+            "is_urgent": is_urgent,
             "has_retry_recommendation": has_retry_rec,
             "has_replacement_recommendation": has_replacement_rec,
+            "has_block_account": has_block_account,
+            "has_cancel_billing": has_cancel_billing,
+            "has_open_fraud_investigation": has_open_fraud_inv,
+            "has_handle_manually": has_handle_manually,
             "has_notice_preview": has_notice_preview,
             "full_text": body_text,
         }
@@ -169,6 +184,80 @@ class BrowserDriver:
             await self.page.wait_for_timeout(2000)
             return True
         logger.warning("No confirmation button found")
+        return False
+
+    async def open_fraud_investigation(
+        self, reason: str, assignee: str | None = None
+    ) -> bool:
+        """Opens a fraud investigation via the Control Center UI dialog."""
+        logger.info("Opening fraud investigation: reason=%s, assignee=%s", reason, assignee)
+        inv_btn = self.page.locator("button", has_text="Open a fraud investigation").first
+        if await inv_btn.count() == 0:
+            logger.warning("Button 'Open a fraud investigation' not found")
+            return False
+
+        await inv_btn.click()
+        await self.page.wait_for_timeout(500)
+
+        # Fill why/wrong textarea
+        ta = self.page.locator("textarea[placeholder*=\"wrong\"]").first
+        if await ta.count() > 0:
+            await ta.fill(reason)
+            await self.page.wait_for_timeout(300)
+
+        # Optionally select assignee
+        if assignee:
+            assign_select = self.page.locator("select", has_text="Anyone on the fraud analyst team").first
+            if await assign_select.count() > 0:
+                await assign_select.select_option(value=assignee)
+
+        # Submit dialog
+        submit_btn = self.page.locator("button", has_text="Open fraud investigation").first
+        if await submit_btn.count() > 0:
+            await submit_btn.click()
+            await self.page.wait_for_timeout(1500)
+            return True
+        return False
+
+    async def block_account(self) -> bool:
+        """Selects 'Block account' and confirms decision."""
+        logger.info("Selecting 'Block account' and confirming...")
+        block_btn = self.page.locator("button", has_text="Block account").first
+        if await block_btn.count() > 0:
+            await block_btn.click()
+            await self.page.wait_for_timeout(600)
+            confirm_btn = self.page.locator("button", has_text="Confirm: Block account").first
+            if await confirm_btn.count() > 0:
+                await confirm_btn.click()
+                await self.page.wait_for_timeout(2000)
+                return True
+        return False
+
+    async def close_with_legal_hold(
+        self,
+        note: str = "Customer under bankruptcy protection; legal hold applied.",
+        resolution_label: str = "Legal or compliance hold",
+    ) -> bool:
+        """Closes an escalation task by recording a legal reason note and resolution."""
+        logger.info("Closing escalation with legal hold: resolution=%s", resolution_label)
+        # 1. Fill reason note in textarea
+        ta = self.page.locator("textarea[placeholder*=\"why\"]").first
+        if await ta.count() > 0:
+            await ta.fill(note)
+            await self.page.wait_for_timeout(300)
+
+        # 2. Select resolution in dropdown
+        select = self.page.locator("select").first
+        if await select.count() > 0:
+            await select.select_option(label=resolution_label)
+            await self.page.wait_for_timeout(500)
+
+        # 3. Confirm handle manually
+        confirm_btn = self.page.locator("button", has_text="Confirm: Handle manually").first
+        if await confirm_btn.count() > 0:
+            await confirm_btn.click()
+            await self.page.wait_for_timeout(2000)
+            return True
         return False
 
     async def select_resolution_and_close(self, resolution_label: str) -> bool:

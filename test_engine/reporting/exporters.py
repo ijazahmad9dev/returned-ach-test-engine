@@ -385,7 +385,7 @@ class JourneyReportExporter:
 
     @staticmethod
     def render_console(results: list[Any]) -> None:
-        table = Table(title="Real-User Journey Evaluation Results (Phase 2)", show_lines=True)
+        table = Table(title="Real-User Journey Evaluation Results (Phase 3 Full Coverage)", show_lines=True)
         table.add_column("Status", width=8, justify="center")
         table.add_column("Journey", style="cyan", width=12)
         table.add_column("Scenario", style="magenta", width=32)
@@ -412,7 +412,7 @@ class JourneyReportExporter:
         status_banner = "PASSED" if all_passed else "FAILED"
 
         lines = [
-            f"# Real-User Evaluation Report: Journeys 1 to 3 ({status_banner})",
+            f"# Real-User Evaluation Report: Full Coverage ({status_banner})",
             "",
             "> **Approach:** Treat AgentOS as a black box and judge it against the client requirements.",
             "> Tested with real entry points (Stripe / Processor webhooks) and human personas in the Control Center UI (Playwright).",
