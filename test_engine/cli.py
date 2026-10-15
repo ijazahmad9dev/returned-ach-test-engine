@@ -421,5 +421,82 @@ def journey(
         sys.exit(1)
 
 
+@main.command()
+@click.option(
+    "--url",
+    "-u",
+    default="http://localhost:8000",
+    help="Runtime API base URL (default: http://localhost:8000)",
+)
+@click.option(
+    "--ui-url",
+    default="http://localhost:3000",
+    help="Control Center UI base URL (default: http://localhost:3000)",
+)
+@click.option(
+    "--headless/--no-headless",
+    default=True,
+    help="Run Playwright browser in headless mode (default: True)",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path("reports/gate"),
+    help="Directory to save gate reports and client evidence package (default: reports/gate)",
+)
+@click.option(
+    "--fail-fast",
+    is_flag=True,
+    default=False,
+    help="Abort gate immediately upon the first failing journey",
+)
+@click.option(
+    "--bundle-client-report/--no-bundle",
+    default=True,
+    help="Generate comprehensive client sign-off evidence package (default: True)",
+)
+@click.option(
+    "--timeout",
+    "-t",
+    type=float,
+    default=15.0,
+    help="Preflight health check timeout in seconds (default: 15.0)",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Enable verbose output",
+)
+def gate(
+    url: str,
+    ui_url: str,
+    headless: bool,
+    output_dir: Path,
+    fail_fast: bool,
+    bundle_client_report: bool,
+    timeout: float,
+    verbose: bool,
+) -> None:
+    """Execute post-deployment gate verification & package client evidence (Phase 4)."""
+    from test_engine.gate.runner import DeploymentGateRunner
+
+    setup_logger(level="DEBUG" if verbose else "INFO", verbose=verbose)
+    gate_runner = DeploymentGateRunner(
+        runtime_url=url,
+        ui_url=ui_url,
+        output_dir=output_dir,
+        headless=headless,
+        fail_fast=fail_fast,
+        bundle_client_report=bundle_client_report,
+        timeout_seconds=timeout,
+    )
+
+    summary = asyncio.run(gate_runner.run_gate())
+    if summary.exit_code != 0:
+        sys.exit(summary.exit_code)
+
+
 if __name__ == "__main__":
     main()

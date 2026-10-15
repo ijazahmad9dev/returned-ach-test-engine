@@ -1,69 +1,90 @@
 # Return ACH Test Engine
 
-An autonomous, modular, production-ready test engine designed to discover, test, and validate **Return ACH Automation** backends (built on FastAPI and LangGraph).
+An autonomous, black-box, production-grade **Real-User Evaluation and Deployment Gate Engine** for Returned ACH resolution platforms (AgentOS).
+
+The engine judges the product the way a real user does: from the outside, with zero knowledge of internal code, evaluated strictly against NACHA rules and client requirements. It drives realistic entry points (Stripe / Processor webhooks), acts as human personas in the Control Center UI (Playwright browser automation), verifies visible outcomes, enforces post-deployment quality gates, and generates tamper-proof client evidence packages.
 
 ---
 
 ## Table of Contents
-- [Architecture Overview](#architecture-overview)
+
+- [Core Principles & Architecture](#core-principles--architecture)
+- [The 4-Phase Delivery Plan](#the-4-phase-delivery-plan)
 - [Key Capabilities](#key-capabilities)
 - [Project Structure](#project-structure)
 - [Installation & Setup](#installation--setup)
-- [CLI Usage Guide](#cli-usage-guide)
-  - [1. API Inspection & Discovery](#1-api-inspection--discovery)
-  - [2. Executing Automated Test Runs](#2-executing-automated-test-runs)
-  - [3. Re-exporting Reports from JSON](#3-re-exporting-reports-from-json)
-- [Configuration Reference](#configuration-reference)
-- [Testing Strategy & Suites](#testing-strategy--suites)
-  - [Detailed Data Flow & Payload Specifications Guide](TEST_DATA_FLOW_README.md)
-- [LangGraph Orchestration Pipeline](#langgraph-orchestration-pipeline)
-- [Mock vs. Real Connector Testing](#mock-vs-real-connector-testing)
-- [Test Reports & Artifacts](#test-reports--artifacts)
+- [CLI Commands & Usage](#cli-commands--usage)
+  - [1. Deployment Gate (`ach-test gate`)](#1-deployment-gate-ach-test-gate)
+  - [2. Real-User Journeys (`ach-test journey`)](#2-real-user-journeys-ach-test-journey)
+  - [3. Shell Deployment Script (`./scripts/deploy_gate.sh`)](#3-shell-deployment-script-scriptsdeploy_gatesh)
+  - [4. API Contract Fuzzing (`ach-test run`)](#4-api-contract-fuzzing-ach-test-run)
+  - [5. API Discovery (`ach-test discover`)](#5-api-discovery-ach-test-discover)
+  - [6. Interactive Web Dashboard (`ach-test ui`)](#6-interactive-web-dashboard-ach-test-ui)
+- [The 8 Real-User Evaluation Journeys](#the-8-real-user-evaluation-journeys)
+- [Deployment Gate & CI/CD Pipeline](#deployment-gate--cicd-pipeline)
+- [Client Evidence & Sign-Off Package](#client-evidence--sign-off-package)
+- [Safety & Data Integrity Guarantees](#safety--data-integrity-guarantees)
 - [Running Self-Tests](#running-self-tests)
 
 ---
 
-## Architecture Overview
+## Core Principles & Architecture
 
-The Return ACH Test Engine is built as an independent, loosely coupled testing application that treats the backend as a target via HTTP contracts.
+Following the specification in `Test Engine Handoff: Real-User Evaluation of AgentOS`:
+
+1. **Expectations come from requirements, never from AgentOS code**: Expected outcomes are drawn directly from the client specification and NACHA guidelines.
+2. **Enter the way real actors enter**: Returns enter via payment processor webhooks (Stripe sandbox or signed processor webhook). Human users interact with the Next.js Control Center UI (`http://localhost:3000`) driven via Playwright personas.
+3. **Judge only what a user can see**: Inboxes, drafted customer notices, suggested retry dates, specialist adjustment ability, customer PII masking, activity timelines, and Reports dashboards.
+4. **Test whole journeys, not single requests**: Each journey traces a case from initial return ingestion to final resolution.
+5. **Safe by default**: Read-only operations by default, dynamic references per run, dates computed from today, zero modification of shared connector settings.
+6. **Report in plain English with screenshot evidence**: Mismatches fail; where requirements are silent, report a question rather than a hard failure.
 
 ```mermaid
 flowchart TD
-    A["Target URL / Endpoint"] --> B["Phase 2: Target & Contract Discovery"]
-    B --> C["OpenAPI Spec & Contract Analyzer"]
-    C --> D["Phase 3: Scenario Generation Engine"]
-    D --> D1["Generic Schema Permutations"]
-    D --> D2["ACH Domain Reason Codes (R01-R99)"]
-    D --> D3["Security & Error Boundaries"]
-    D --> D4["Connector Verification"]
-    D1 & D2 & D3 & D4 --> E["Phase 5: Async HTTP Runner"]
-    E --> F["Response & Business Rule Validator"]
-    F --> G["Diff & Failure Diagnostics"]
-    G --> H["Phase 7: Multi-Format Reporting"]
-    H --> H1["Console (Rich)"]
-    H --> H2["JSON Artifact"]
-    H --> H3["Markdown Report"]
-    H --> H4["HTML Dashboard"]
+    subgraph Inputs ["Real Actor Ingestion"]
+        S["Stripe Sandbox / Mock Processor"] -->|POST /webhooks/returned-ach/*| A["AgentOS Black Box"]
+    end
+
+    subgraph Evaluation ["Observable Outcomes (Control Center UI)"]
+        A -->|Tasks & State| B["Playwright Browser Driver"]
+        B -->|Persona: Marcus| P1["Payments Specialist (R01 Retry Window)"]
+        B -->|Persona: Priya| P2["Reviewer (R03 Replacement Method)"]
+        B -->|Persona: Sam| P3["Fraud Analyst (R10 Urgent Stop)"]
+        B -->|Persona: Dana| P4["Escalation Owner (Bankruptcy Stay)"]
+        B -->|Persona: Lena| P5["Claims Intake (PII Redaction)"]
+        B -->|Persona: Admin| P6["Executive Dashboard (/reports)"]
+    end
+
+    subgraph Gate ["Deployment Gate & Evidence"]
+        P1 & P2 & P3 & P4 & P5 & P6 --> G["Deployment Gate Runner"]
+        G -->|All Pass| GREEN["✅ GREEN DEPLOY (Exit 0)"]
+        G -->|Any Failure| RED["🚨 RED DEPLOY REJECTED (Exit 1)"]
+        GREEN --> PKG["Client Evidence Package (HTML + MD + SHA-256 Manifest)"]
+        RED --> DIAG["Forensic Diagnostics (red_deploy_failure.json)"]
+    end
 ```
+
+---
+
+## The 4-Phase Delivery Plan
+
+| Phase | Title | Core Objective | Done When |
+|:---:|---|---|---|
+| **1** | **Fix the Basics** | Read-only default, exact HTTP status codes, dynamic UUIDs & current dates, removed made-up mock passes. | No false passes; no settings changed. |
+| **2** | **First Journeys** | Stripe sandbox driver, Playwright browser driver, Scenario A (`R01`), Scenario B (`R03`), Retry outcome. | Journeys 1 to 3 pass on local stack. |
+| **3** | **Full Coverage** | Journeys 4 to 8: Suspected fraud, protected customer bankruptcy, duplicate events, RBAC/privacy masking, executive reporting figures. | All 8 journeys pass; plain-English report. |
+| **4** | **Gate and Evidence** | Post-deploy CI gate CLI, strict red deploy failure exit code, client deliverables package with cryptographic manifest and sign-off sheet. | Runs on every deploy; client signs off. |
 
 ---
 
 ## Key Capabilities
 
-1. **Flexible Target Targeting**:
-   - Accepts either a **Base Backend URL** (e.g. `http://localhost:8000`) or a **Specific Endpoint URL** (e.g. `http://localhost:8000/api/v1/triggers/returned-ach`).
-2. **Autonomous OpenAPI Discovery & `$ref` Dereferencing**:
-   - Discovers `/openapi.json`, analyzes parameter requirements, regex constraints (`_TRACE`, `ReasonCode`), bounds, and strict model rules.
-3. **NACHA ACH Domain-Specific Rules**:
-   - Tests standard NACHA return reason codes matrix (`R01`, `R02`, `R03`, `R04`, `R07`, `R08`, `R10`, `R16`, `R20`).
-   - Validates trace number shape (6–64 chars alphanumeric), settlement date thresholds (year >= 2000), deduplication idempotency (replays return HTTP 200), and multi-step case lifecycles.
-4. **Pluggable Mock & Real Connectors**:
-   - Tests external upstream systems (Payment, Servicing, CRM, Risk).
-   - Validates in-memory mocks as well as live external endpoints with strict non-destructive read queries and latency SLA enforcement.
-5. **LangGraph Workflow Orchestration**:
-   - Orchestrates the testing lifecycle via stateful `StateGraph` with conditional routing on target reachability and scenario availability.
-6. **Multi-Format Reporting**:
-   - Generates interactive Console tables, machine-readable JSON artifacts, GitHub-flavored Markdown reports, and self-contained HTML dashboards.
+- **100% Real-User Journey Coverage**: Full automated execution of all 8 business journeys across all organizational personas.
+- **Automated Deployment Gate**: `ach-test gate` halts red deploys with exit code `1` and outputs actionable forensic failure logs.
+- **Client Sign-off Evidence Package**: Generates standalone, self-contained HTML/Markdown reports and an audit manifest with SHA-256 checksums of all screenshots and artifacts.
+- **Browser Playwright Automation**: Native browser interactions against the Control Center UI (`http://localhost:3000`) supporting persona switching (`marcus`, `priya`, `sam`, `dana`, `lena`, `admin`).
+- **Cryptographic Webhook Signatures**: Ingests realistic return events signed with HMAC-SHA256 (`POST /api/v1/webhooks/returned-ach/mock_processor` and Stripe webhooks).
+- **Comprehensive API Contract Testing**: Preserves contract discovery, schema permutations, NACHA domain rules, and error boundary tests.
 
 ---
 
@@ -71,54 +92,38 @@ flowchart TD
 
 ```text
 returned-ach-test-engine/
-├── pyproject.toml              # Build & dependency packaging
-├── README.md                   # System documentation
+├── .github/
+│   └── workflows/
+│       └── deploy-gate.yml         # GitHub Actions post-deploy gate workflow
+├── scripts/
+│   └── deploy_gate.sh              # Standalone deployment gate shell script
 ├── test_engine/
-│   ├── __init__.py
-│   ├── cli.py                  # Click CLI entrypoint (ach-test)
-│   ├── config.py               # Pydantic Settings configuration management
-│   ├── logger.py               # Structured logging & execution trace context
-│   ├── models/
-│   │   ├── contract.py         # APIContract, EndpointContract, FieldValidationRule
-│   │   ├── test_case.py        # TestCase, TestRequest, ExpectedResponse
-│   │   ├── result.py           # TestExecutionResult, ValidationOutcome
-│   │   └── report.py           # FullTestReport, TestReportSummary
-│   ├── discovery/
-│   │   ├── resolver.py         # Target URL probe and reachability inspector
-│   │   ├── openapi_fetcher.py  # OpenAPI spec fetcher & $ref dereferencer
-│   │   └── contract_analyzer.py# Route analyzer and constraint extractor
-│   ├── scenarios/
-│   │   ├── schema_generator.py # Schema baseline, missing fields, invalid types
-│   │   ├── ach_domain_generator.py # NACHA matrix, dates, traces, deduplication
-│   │   ├── error_generator.py  # Malformed JSON, 404, 409, 403 identity headers
-│   │   └── generator.py        # Unified scenario coordinator
-│   ├── connectors/
-│   │   ├── base.py             # Connector protocols and result models
-│   │   ├── mock_tester.py      # Mock Payment, Servicing, CRM, Risk tester
-│   │   ├── real_tester.py      # Live external connector integration harness
-│   │   └── workflow_bridge.py  # Workflow evidence packet & registry bridge
-│   ├── execution/
-│   │   ├── client.py           # Async HTTP client with pooling, retries, timing
-│   │   └── runner.py           # Concurrent runner & stateful sequential scheduler
-│   ├── validation/
-│   │   ├── validator.py        # Multi-dimensional response validator
-│   │   └── diff_analyzer.py    # Diff calculator & failure diagnostics
-│   ├── orchestration/
-│   │   ├── state.py            # LangGraph TestEngineState
-│   │   ├── nodes.py            # Workflow nodes (discover, analyze, execute, etc.)
-│   │   └── graph.py            # StateGraph assembly & conditional routing
-│   └── reporting/
-│       └── exporters.py        # Console, JSON, Markdown, HTML exporters
+│   ├── cli.py                      # Click CLI entrypoint (ach-test gate/journey/run/discover/ui)
+│   ├── config.py                   # Engine configuration & environment settings
+│   ├── logger.py                   # Structured logging
+│   ├── journeys/
+│   │   ├── definitions.yaml        # Journey definitions written from requirements
+│   │   ├── models.py               # JourneyResult, JourneyStep, Persona, StepStatus
+│   │   ├── driver_stripe.py        # Stripe sandbox & signed webhook processor driver
+│   │   ├── driver_browser.py       # Playwright browser driver for Control Center UI
+│   │   └── runner.py               # Complete 8-journey evaluation orchestrator
+│   ├── gate/
+│   │   ├── __init__.py
+│   │   └── runner.py               # Post-deployment gate runner & red deploy diagnostics
+│   ├── reporting/
+│   │   ├── client_packager.py      # Client evidence packager (HTML, MD, SHA-256 manifest)
+│   │   └── exporters.py            # Console, JSON, Markdown, HTML exporters
+│   ├── discovery/                  # OpenAPI spec discovery & contract analysis
+│   ├── scenarios/                  # NACHA domain & schema scenario generators
+│   ├── execution/                  # Async HTTP client and request runner
+│   ├── validation/                 # Strict status and field validator
+│   └── server.py                   # Localhost FastAPI web server & UI dashboard
 └── tests/
-    ├── test_config.py
-    ├── test_logger.py
-    ├── test_discovery.py
-    ├── test_scenarios.py
-    ├── test_connectors.py
-    ├── test_execution_validation.py
-    ├── test_graph.py
-    ├── test_reporting.py
-    └── test_e2e.py             # Full end-to-end integration tests
+    ├── test_gate.py                # Deployment gate and evidence packager tests
+    ├── test_journeys.py            # Journey runner tests
+    ├── test_drivers.py             # Stripe and browser driver tests
+    ├── test_phase1_compliance.py   # Safety & read-only compliance tests
+    └── ...                         # 69 unit & integration tests passing (100%)
 ```
 
 ---
@@ -127,188 +132,176 @@ returned-ach-test-engine/
 
 ### Prerequisites
 - Python >= 3.11
-- `uv` (recommended) or `pip`
+- `uv` package manager (recommended)
 
-### Using `uv` (Recommended)
+### Installation
 ```bash
+git clone https://github.com/ijazahmad9dev/returned-ach-test-engine.git
 cd returned-ach-test-engine
-uv venv
-uv pip install -e ".[dev]"
-```
 
-### Using standard `pip`
-```bash
-cd returned-ach-test-engine
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+# Sync virtualenv and dependencies
+uv sync --all-extras
+
+# Install Playwright browser binaries
+uv run playwright install --with-deps chromium
 ```
 
 ---
 
-## CLI Usage Guide
+## CLI Commands & Usage
 
-The engine installs the `ach-test` executable.
+The package installs the `ach-test` executable.
 
-### 1. API Inspection & Discovery
-Inspect endpoints and parameter contracts before running tests:
-
-```bash
-# Discover all routes and schemas from a base backend URL:
-ach-test discover --url http://localhost:8000
-
-# Inspect a specific endpoint:
-ach-test discover --url http://localhost:8000/api/v1/triggers/returned-ach
-```
-
-### 2. Executing Automated Test Runs
-Execute test suites against the target:
+### 1. Deployment Gate (`ach-test gate`)
+Runs pre-flight readiness checks, executes the complete 8-journey evaluation, enforces non-zero exit on failure, and packages client evidence:
 
 ```bash
-# Full test run against local Return ACH backend:
-ach-test run --url http://localhost:8000
+# Run against local stack:
+uv run ach-test gate --url http://localhost:8000 --ui-url http://localhost:3000
 
-# Test a single endpoint URL with schema validation:
-ach-test run --url http://localhost:8000/api/v1/triggers/returned-ach --suites schema
+# Run in fail-fast mode (stops immediately upon first failing journey):
+uv run ach-test gate --fail-fast
 
-# Run ACH domain business rules and connectors in real mode:
-ach-test run --url http://localhost:8000 --mode real --suites ach_domain --suites connectors
-
-# High concurrency with custom report formats and output directory:
-ach-test run --url http://localhost:8000 --concurrency 10 --output-dir ./test-artifacts -f html -f markdown -f json
-
-# Run using a YAML configuration file:
-ach-test run --config config.yaml
+# Specify custom output directory:
+uv run ach-test gate -o reports/gate --bundle-client-report
 ```
 
-### 3. Re-exporting Reports from JSON
-Generate HTML or Markdown reports from an existing test artifact without re-running tests:
+### 2. Real-User Journeys (`ach-test journey`)
+Executes human-in-the-loop journeys with Playwright browser automation:
 
 ```bash
-ach-test report --input reports/report.json --output-dir ./exports --format html --format markdown
+# Run all 8 journeys:
+uv run ach-test journey -j all
+
+# Run an individual journey (e.g. Journey 1: Scenario A):
+uv run ach-test journey -j 1
+
+# Run with visible browser window (non-headless):
+uv run ach-test journey -j 4 --no-headless
 ```
 
-### 4. Interactive Web Dashboard (Frontend)
-Launch the built-in interactive web UI dashboard:
+### 3. Shell Deployment Script (`./scripts/deploy_gate.sh`)
+An executable script designed for CI/CD pipelines and deployment hooks:
 
 ```bash
-# Start web server on port 8080:
-ach-test ui --port 8080
-
-# Or run with auto-reload:
-ach-test ui --port 8080 --reload
+# Execute deployment gate with automatic readiness polling:
+./scripts/deploy_gate.sh
 ```
-Open **[http://localhost:8080](http://localhost:8080)** to interactively:
-- Configure target backend URL, connector modes, and suites.
-- Click **"Discover API Contracts"** to inspect schemas and parameter requirements.
-- Click **"Run Test Engine"** to trigger live tests and view real-time pass/fail metrics.
-- Inspect any test scenario's full request, response, validation diffs, and execution traces.
-- Download reports in JSON, Markdown, or HTML.
+
+### 4. API Contract Fuzzing (`ach-test run`)
+Executes schema validation, NACHA reason code matrix, and error handling tests:
+
+```bash
+# Run default read-only contract tests:
+uv run ach-test run --url http://localhost:8000
+
+# Run with custom suites:
+uv run ach-test run --suites ach_domain --suites schema -f html -f markdown
+```
+
+### 5. API Discovery (`ach-test discover`)
+Inspects endpoints, parameter requirements, and OpenAPI contracts:
+
+```bash
+uv run ach-test discover --url http://localhost:8000
+```
+
+### 6. Interactive Web Dashboard (`ach-test ui`)
+Launches the localhost web dashboard:
+
+```bash
+uv run ach-test ui --port 8080
+```
 
 ---
 
-## Configuration Reference
+## The 8 Real-User Evaluation Journeys
 
-Settings can be specified via **CLI flags**, **environment variables** (prefixed with `ACH_TEST_`), or a **YAML config file**:
-
-| Setting | CLI Flag | Env Variable | Default | Description |
+| # | Journey | Persona | How It Starts | Expected Outcome Required by Spec |
 |---|---|---|---|---|
-| Target URL | `--url` / `-u` | `ACH_TEST_TARGET_URL` | `http://localhost:8000` | Backend base URL or specific endpoint |
-| Execution Mode | `--mode` / `-m` | `ACH_TEST_EXECUTION_MODE` | `mock` | Connector mode (`mock` or `real`) |
-| Test Suites | `--suites` / `-s` | `ACH_TEST_SUITES` | `["health", "schema", "ach_domain", "security", "connectors"]` | Active suites |
-| Max Concurrency | `--concurrency` / `-c` | `ACH_TEST_MAX_CONCURRENCY` | `5` | Semaphore limit for async requests |
-| Timeout (seconds)| `--timeout` / `-t` | `ACH_TEST_TIMEOUT_SECONDS` | `15.0` | Request timeout |
-| Output Directory | `--output-dir` / `-o` | `ACH_TEST_OUTPUT_DIR` | `reports` | Path where reports are written |
-| Report Formats | `--format` / `-f` | `ACH_TEST_REPORT_FORMATS` | `["console", "json", "markdown", "html"]` | Enabled report types |
-| User ID | - | `ACH_TEST_AUTH_USER_ID` | `usr_test_operator_01` | Injected into `X-User-Id` |
-| Tenant ID | - | `ACH_TEST_TENANT_ID` | `tenant_qa_01` | Tenant ID for multi-tenant requests |
+| **1** | **Scenario A: Insufficient Funds (`R01`), $89.00** | `marcus` (Payments Specialist) | Failing debit in Stripe sandbox / mock processor | Case reaches Marcus's inbox. Suggests retry 4 business days after return. Drafts notice naming date. Marcus moves date and approves. Handoff to client payment process; AgentOS debits nothing. |
+| **2** | **Retry Outcome (Settled vs. Bouncing)** | System / `admin` | Retry of Journey 1's debit (once settling, once failing) | Settled: case marked settled and counted in Reports. Failed again: case reopens for manual handling. |
+| **3** | **Scenario B: No Account (`R03`), $125.00** | `priya` (Reviewer) | No-account debit in Stripe sandbox / mock processor | No retry offered. Replacement payment method request drafted (Email/SMS). On approval, case stays open waiting for customer with follow-up task; Priya closes with resolution reason. |
+| **4** | **Suspected Fraud (`R10`) on New Account** | `sam` (Fraud Analyst) | Trigger for fraud test account (`TRC-R10-FRAUD`) | Urgent priority at top of Sam's inbox. Retry ruled out; no customer message drafted. Account blocking and stopping future debits offered. Team alerted; Sam opens fraud investigation. |
+| **5** | **Protected Customer (Bankruptcy)** | `dana` (Escalation Owner) | Trigger for protected test account (`TRC-PROTECTED`) | Bankruptcy stops case at protection gate before interpretation. Escalates to Dana. Nothing can be approved. Dana closes without action, citing legal/compliance stay reason. |
+| **6** | **Duplicate Event Handling** | System | Exact same processor return delivered twice | Deduplicated by processor reference: exactly one case created; second delivery identified as duplicate without duplicate tasks. |
+| **7** | **Permissions & Privacy (RBAC)** | `marcus`, `lena`, `sam` | Cross-persona access attempt on open case | Unauthorized roles cannot decide (HTTP 403 `wrong_role`). Roles without identity access (`lena`) see redacted customer name (`[NAME_1]`). Authorized roles (`sam`) view details. |
+| **8** | **Executive Reporting** | `admin` | Navigation to `/reports` after journeys 1–6 | Executive metrics reflect live run activity: return rates, settled retries, and recovered dollars accurately aggregated. |
 
 ---
 
-## Testing Strategy & Suites
+## Deployment Gate & CI/CD Pipeline
 
-> [!TIP]
-> For concrete payload shapes, field validation rules, and status codes for data going in and out, see the dedicated [Test Specifications & Data Flow Guide](TEST_DATA_FLOW_README.md).
+The gate runner strictly enforces deployment quality:
 
-1. **`health`**: Verifies API availability, `/api/v1/health` status, and connectivity.
-2. **`schema`**: Generates valid baseline payloads, missing required field permutations (422), invalid types (422), boundary violations (empty string, length overflows), strict extra fields rejection, and invalid HTTP verbs (405).
-3. **`ach_domain`**:
-   - NACHA return reason codes matrix (`R01` to `R20`).
-   - Shape validators: `ReasonCode` regex, `_TRACE` alphanumeric regex.
-   - Settlement dates validator (rejecting dates before year 2000).
-   - Deduplication: verifies initial submission returns 201 Created, while identical replay returns 200 OK.
-4. **`lifecycle`**: Stateful multi-step workflow flow:
-   - Step 1: `POST /api/v1/triggers/returned-ach` (extracts `case_id`).
-   - Step 2: `GET /api/v1/cases/{case_id}` (verifies case state).
-   - Step 3: `GET /api/v1/tasks?case_id={case_id}` (verifies review task creation).
-5. **`security` / `error_handling`**: Missing identity headers (`X-User-Id`), non-existent resources (404 ErrorEnvelope), stale revision conflicts (409), malformed JSON payloads.
-6. **`connectors`**: Tests Payment, Servicing, CRM, and Risk connector integrations.
+- **Pass Criterion**: Target API and Control Center UI must be healthy, and 100% of real-user journeys must pass.
+- **Fail Criterion ("Fails a Red Deploy")**: If any journey assertion fails, a service is down, or an unexpected exception occurs:
+  1. The gate terminates with non-zero exit code `1`.
+  2. Forensic diagnostics are emitted to `reports/gate/red_deploy_failure.json` and `reports/gate/red_deploy_failure.md`.
+  3. Actionable remediation notes and links to failure screenshots are provided.
+
+### GitHub Actions Workflow (`.github/workflows/deploy-gate.yml`)
+Runs automatically on pushes, pull requests, or manual `workflow_dispatch`:
+- Sets up Python 3.11 and `uv`.
+- Installs Playwright Chromium.
+- Executes `pytest` and `./scripts/deploy_gate.sh`.
+- Automatically publishes the **Client Evidence Package** as a workflow artifact.
 
 ---
 
-## LangGraph Orchestration Pipeline
+## Client Evidence & Sign-Off Package
 
-The engine leverages LangGraph for clean, resilient, stateful workflow management:
+Generated automatically in `reports/gate/client_package/`:
 
-```text
-Input Backend/Endpoint URL
-            ↓
-       discover_api
-            ↓
-  [route_after_discovery] ──(unreachable)──> generate_report ──> END
-            ↓ (reachable)
-     analyze_contract
-            ↓
-    generate_scenarios
-            ↓
-  [route_after_scenarios] ──(empty)────────> generate_report ──> END
-            ↓ (has cases)
-      execute_tests
-            ↓
-    validate_responses
-            ↓
-     analyze_failures
-            ↓
-     generate_report
-            ↓
-           END
-```
+- **`index.html`**: Interactive, responsive executive report with KPI cards, NACHA compliance scorecard, step-by-step journey audit tables, screenshot previews, open policy questions, and a formal Client Acceptance Sign-Off section.
+- **`client_evaluation_report.md`**: Clean, standalone GitHub-flavored Markdown deliverable.
+- **`evidence_manifest.json`**: Tamper-proof JSON manifest containing SHA-256 cryptographic hashes for every generated file and screenshot. Run `sha256sum -c evidence_manifest.json` to verify integrity.
+- **`screenshots/`**: Portable bundle of Playwright diagnostic screenshots.
+
+### Open Policy Questions (Documented for Client Decision)
+1. **R16 & R20 Return Codes**: Unmapped codes currently route to a human reviewer as unknown codes.
+2. **Post-Deploy Target Environment**: Formal environment ownership (staging vs production-mirrored sandbox).
+3. **Stripe Sandbox Credentials**: Provisioning of isolated test credentials for automated gating.
+4. **Report Publishing Destination**: Long-term artifact archive (S3 compliance bucket, CI/CD artifacts, or client portal).
 
 ---
 
-## Mock vs. Real Connector Testing
+## Safety & Data Integrity Guarantees
 
-- **Mock Mode (`--mode mock`)**:
-  - Validates determinism of in-memory synthetic data.
-  - Verifies sample trace numbers and account queries return expected fixture values.
-  - Verifies error resilience on synthetic missing items.
-- **Real Mode (`--mode real`)**:
-  - Connects to real external systems configured via environment variables:
-    - `ACH_TEST_PAYMENT_URL`
-    - `ACH_TEST_SERVICING_URL`
-    - `ACH_TEST_CRM_URL`
-    - `ACH_TEST_RISK_URL`
-  - Enforces **strictly non-destructive read operations** to protect production systems against unintended mutations.
-  - Measures live network round-trip latencies against latency SLA gates (`max_sla_ms`).
-
----
-
-## Test Reports & Artifacts
-
-After each run, the engine writes self-contained artifacts to the output directory:
-- **`report.json`**: Complete machine-readable data containing serialized requests, responses, diffs, and execution metrics.
-- **`report.md`**: GitHub-flavored markdown report suitable for CI/CD summaries and pull request comments.
-- **`report.html`**: Interactive HTML dashboard with KPI cards, pass/fail badges, and collapsible diagnostic drawers.
+- **Read-Only by Default**: The test engine never mutates live connector configurations. Mutating operations are restricted behind `--allow-writes`.
+- **Fresh Dynamic Identifiers**: Unique UUIDs generated per run (`evt_...`, `trace_...`) prevent stale replay traps.
+- **Real-Time Date Calculations**: Dates are dynamically calculated relative to today (`date.today()`), matching AgentOS real-time handling.
+- **Origin-Restricted CORS**: The web dashboard restricts CORS to local origin and whitelisted target hosts (`localhost`, `127.0.0.1`).
 
 ---
 
 ## Running Self-Tests
 
-To run the complete test suite for the test engine:
+To execute the unit and integration test suite:
 
 ```bash
-cd returned-ach-test-engine
-.venv/bin/pytest -v
+uv run pytest
 ```
 
-All 37 unit and integration tests pass with 0 warnings.
+```text
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1
+collected 69 items
+
+tests/test_config.py ....                                                [  5%]
+tests/test_connectors.py ....                                            [ 11%]
+tests/test_discovery.py ......                                           [ 20%]
+tests/test_drivers.py ....                                               [ 26%]
+tests/test_e2e.py ..                                                     [ 28%]
+tests/test_execution_validation.py .....                                 [ 36%]
+tests/test_gate.py .........                                             [ 49%]
+tests/test_graph.py ....                                                 [ 55%]
+tests/test_journeys.py ..                                                [ 57%]
+tests/test_logger.py ..                                                  [ 60%]
+tests/test_phase1_compliance.py ....                                     [ 66%]
+tests/test_reporting.py ......                                           [ 75%]
+tests/test_scenarios.py ......                                           [ 84%]
+tests/test_server.py ...........                                         [100%]
+
+============================== 69 passed in 0.98s ==============================
+```
